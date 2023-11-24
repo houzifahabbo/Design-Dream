@@ -1,0 +1,36 @@
+{
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:node/recommended",
+    "plugin:mongodb/recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2021
+  },
+  "rules": {
+    "prettier/prettier": "error",
+    "check-insert-calls": "error",
+    "check-update-calls": "error",
+    "check-query-calls": "error",
+    "check-remove-calls": "error",
+    "check-deprecated-calls": "error",
+    "no-replace": "error",
+    "check-numeric-updates": "error",
+    "check-rename-updates": "error",
+    "check-unset-updates": "error",
+    "check-current-date-updates": "error",
+    "check-minmax-updates": "error",
+    "check-set-updates": "error",
+    "check-push-updates": "error",
+    "check-pull-updates": "error",
+    "check-pop-updates": "error",
+    "check-addtoset-updates": "error",
+    "check-deprecated-updates": "error",
+    "no-dupe-keys": "error"
+  },
+  "plugins": ["prettier"]
+}

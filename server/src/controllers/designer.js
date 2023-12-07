@@ -31,6 +31,7 @@ DesignerController.createAccount = async (req, res) => {
   const jwtExp = Math.floor(Date.now() / 1000) + 86400; // 1 day expiration
   const { name, email, password, confirmPassword, description, phoneNumber } =
     req.body;
+  const { buffer, mimetype } = req.file;
   try {
     if (password !== confirmPassword) {
       return res.status(400).json({ error: "Passwords do not match" });
@@ -45,6 +46,10 @@ DesignerController.createAccount = async (req, res) => {
       password,
       description,
       phoneNumber,
+      logo: {
+        imageData: buffer,
+        contentType: mimetype,
+      },
     });
 
     try {

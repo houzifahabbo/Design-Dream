@@ -1,33 +1,35 @@
 const express = require("express");
 const routes = express.Router();
 const multer = require("multer");
-const { GridFsStorage } = require("multer-gridfs-storage");
+const DesignerModel = require("../db/models/designer");
 const DesignerController = require("../controllers/designer");
 const authentication = require("../middleware/authentication");
 
-const url = "mongodb://localhost:27017/arch";
-const storage = new GridFsStorage({
-  url,
-  file: (req, file) => {
-    console.log(file);
-    //If it is an image, save to photos bucket
-    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
-      return {
-        bucketName: "photos",
-        filename: `${Date.now()}_${file.originalname}`,
-      };
-    } else {
-      //Otherwise save to default bucket
-      return `${Date.now()}_${file.originalname}`;
-    }
-  },
-});
+// const url = "mongodb://localhost:27017/arch";
+// const storage = new GridFsStorage({
+//   url,
+//   file: (req, file) => {
+//     console.log(file);
+//     //If it is an image, save to photos bucket
+//     if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+//       return {
+//         bucketName: "photos",
+//         filename: `${Date.now()}_${file.originalname}`,
+//       };
+//     } else {
+//       //Otherwise save to default bucket
+//       return `${Date.now()}_${file.originalname}`;
+//     }
+//   },
+// });
 
-const upload = multer({ storage });
+// const upload = multer({ storage });
 
-routes.post("/test", upload.single("logo"), (req, res) => {
-  console.log(req.file);
-  res.json(req.file);
+const storage = multer.memoryStorage(); // Configuring multer to use memory storage
+const upload = multer({ storage: storage });
+
+routes.get("/test", async (req, res) => {
+  res.json(await DesignerModel.find({}));
 });
 
 // routes.get('/', DesignerController.getDesigners);

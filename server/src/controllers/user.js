@@ -60,10 +60,7 @@ userController.postSignin = async (req, res) => {
         error: "Couldn't find your account",
       });
     }
-    const passwordMatches = await account.comparePassword(
-      password,
-      account.password_hash
-    );
+    const passwordMatches = await account.comparePassword(password);
     if (!passwordMatches) {
       return res.status(400).json({
         error: "Wrong username or password",
@@ -116,6 +113,7 @@ userController.postSignup = async (req, res) => {
     try {
       const account = new AccountModel({
         user: user._id,
+        model_type: "User",
         password_hash: password,
       });
       await account.save();
@@ -157,6 +155,7 @@ userController.getUserById = async (req, res) => {
   }
 };
 
+//TODO: fix this function to match the designer function
 userController.updateProfile = async (req, res) => {
   const user = req.user;
   const {
@@ -168,18 +167,20 @@ userController.updateProfile = async (req, res) => {
     lastname,
   } = req.body;
   try {
-    if (password !== confirmPassword) {
-      return res.status(400).json({
-        error: "passwords do not match",
-      });
-    }
     const updatedUser = await UserModel.findById(user.id);
     if (!updatedUser) {
       return res.status(404).json({
         message: "User not found",
       });
     }
+    // if (password && confirmPassword) {
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        error: "passwords do not match",
+      });
+    }
 
+    // }
     updatedUser.username = username;
     updatedUser.firstname = firstname;
     updatedUser.lastname = lastname;
@@ -276,7 +277,7 @@ userController.forgotPassword = async (req, res) => {
     const emailText = resetPasswordTemplate(token, user.username);
     sendEmail(email, "Reset Password", emailText);
     res.json({
-      message: "Email sent successfully",
+      message: "paymentsuccessfully",
     });
   } catch (err) {
     res.status(400).json({

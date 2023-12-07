@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+//Todo: Add validation for email and phone number
 
 const userSchema = mongoose.Schema({
   username: {

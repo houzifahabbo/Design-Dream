@@ -1,8 +1,34 @@
 const express = require("express");
-
 const routes = express.Router();
+const multer = require("multer");
+const { GridFsStorage } = require("multer-gridfs-storage");
 const DesignerController = require("../controllers/designer");
 const authentication = require("../middleware/authentication");
+
+const url = "mongodb://localhost:27017/arch";
+const storage = new GridFsStorage({
+  url,
+  file: (req, file) => {
+    console.log(file);
+    //If it is an image, save to photos bucket
+    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+      return {
+        bucketName: "photos",
+        filename: `${Date.now()}_${file.originalname}`,
+      };
+    } else {
+      //Otherwise save to default bucket
+      return `${Date.now()}_${file.originalname}`;
+    }
+  },
+});
+
+const upload = multer({ storage });
+
+routes.post("/test", upload.single("logo"), (req, res) => {
+  console.log(req.file);
+  res.json(req.file);
+});
 
 // routes.get('/', DesignerController.getDesigners);
 // routes.post('/', DesignerController.createDesigner);
@@ -13,6 +39,7 @@ const authentication = require("../middleware/authentication");
 routes.post(
   "/signup",
   authentication.isAuthenticated,
+  upload.single("logo"),
   DesignerController.createAccount
 );
 
@@ -25,7 +52,7 @@ routes.post(
 
 // Sign out from designer account
 routes.post(
-  "/signOut",
+  "/signout",
   authentication.authMiddleware,
   authentication.isDesigner,
   DesignerController.signout
@@ -39,7 +66,7 @@ routes.get("/:DesignerId/events", DesignerController.getDesignerEvents);
 
 // Update designer details
 routes.put(
-  "/updateAccount",
+  "/",
   authentication.authMiddleware,
   authentication.isDesigner,
   DesignerController.updateAccount

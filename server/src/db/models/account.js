@@ -1,12 +1,19 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
+//TODO: add model_type to figma
+//TODO: change the name of user filed
 const accountSchema = mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "model_type",
     required: true,
     unique: true,
+  },
+  model_type: {
+    type: String,
+    enum: ["User", "Designer"],
+    required: true,
   },
   password_hash: {
     type: String,

@@ -1,8 +1,8 @@
 const jwt = require("jsonwebtoken");
 const DesignerModel = require("../db/models/designer");
 const EventModel = require("../db/models/order");
-require("dotenv").config();
 
+//TODO: CHECK IF isUser is needed or not
 const isAdminMiddleware = (req, res, next) => {
   const token = req.cookies.jwt;
   if (token) {
@@ -66,13 +66,26 @@ const authMiddleware = (req, res, next) => {
 
 const isDesigner = async (req, res, next) => {
   const { user } = req;
-
   try {
-    const isDesigner = await DesignerModel.findById({ _id: user.id });
-    if (!isDesigner) {
-      return res.status(401).json({ error: "Not authorized  as an designer!" });
+    const designer = await DesignerModel.findById(user.id);
+    if (!designer) {
+      return res.status(403).send("Forbidden");
     }
-    req.designer = isDesigner;
+    req.designer = designer;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: error.message });
+  }
+};
+
+const isUser = async (req, res, next) => {
+  const { user } = req;
+  try {
+    const user = await UserModel.findById(user.id);
+    if (!user) {
+      return res.status(403).send("Forbidden");
+    }
+    req.user = user;
     next();
   } catch (error) {
     res.status(401).json({ error: error.message });

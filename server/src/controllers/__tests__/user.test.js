@@ -7,6 +7,7 @@ const AccountModel = require("../../db/models/account");
 const sendEmail = require("../../utils/email");
 const mongoose = require("../../db/connection");
 const userController = require("../user");
+const { db } = require("../../db/models/payment");
 require("dotenv").config();
 
 // Mocking mail sender
@@ -24,35 +25,33 @@ jwt.sign.mockReturnValue("mocked-jwt-token");
 // Mock the Bcrypt hashing functionality
 jest.mock("bcrypt");
 
+// Connect to the test database before running the tests
+beforeAll(async () => {
+  // await mongoose.connect(process.env.MONGODB_TEST_URI, {
+  //   useNewUrlParser: true,
+  //   useUnifiedTopology: true,
+  // });
+  const db = mongoose.createConnection(process.env.MONGODB_TEST_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    // add more config if you need
+  });
+  db.on(`error`, console.error.bind(console, `connection error:`));
+  db.once(`open`, function () {
+    // we`re connected!
+  });
+});
+
+// Disconnect from the database after running the tests
+afterAll(async () => {
+  await db.close();
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.resetModules();
+});
 describe("POST /user/signup", () => {
-  // Connect to the test database before running the tests
-  beforeAll(async () => {
-    // await mongoose.connect(process.env.MONGODB_TEST_URI, {
-    //   useNewUrlParser: true,
-    //   useUnifiedTopology: true,
-    // });
-    const db = mongoose.createConnection(process.env.MONGODB_TEST_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      // add more config if you need
-    });
-    db.on(`error`, console.error.bind(console, `connection error:`));
-    db.once(`open`, function () {
-      // we`re connected!
-      console.log(`MongoDB connected on "  ${config.mongoUrl}`);
-    });
-  });
-
-  // Disconnect from the database after running the tests
-  afterAll(async () => {
-    await mongoose.connection.close();
-  });
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.resetModules();
-  });
-
   it("should create a new user and account with valid data", async () => {
     const userData = {
       username: "testuser4",
@@ -139,26 +138,6 @@ describe("POST /user/signup", () => {
 });
 
 describe("POST /user/signin", () => {
-  const db = mongoose.createConnection(process.env.MONGODB_TEST_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-  db.on(`error`, console.error.bind(console, `connection error:`));
-  db.once(`open`, function () {
-    // we`re connected!
-    console.log(`MongoDB connected on "  ${config.mongoUrl}`);
-  });
-
-  // Disconnect from the database after running the tests
-  afterAll(async () => {
-    await mongoose.connection.close();
-  });
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.resetModules();
-  });
-
   it("should sign in successfully with valid credentials", async () => {
     const userData = {
       username: "testuser4",
@@ -339,8 +318,6 @@ describe("POST /user/signin", () => {
   });
 });
 
-const JWT_SECRET = "your_secret";
-
 describe("PUT /user", () => {
   let req;
   let res;
@@ -378,7 +355,6 @@ describe("PUT /user", () => {
     UserModel.findById.mockResolvedValue({
       save: jest.fn().mockResolvedValue(),
     });
-
     AccountModel.findOne.mockResolvedValue({
       set: jest.fn(),
       save: jest.fn().mockResolvedValue(),

@@ -1,12 +1,11 @@
 const jwt = require("jsonwebtoken");
 const DesignerModel = require("../db/models/designer");
-const EventModel = require("../db/models/order");
+const OrderModel = require("../db/models/order");
 const UserModel = require("../db/models/user");
+const AccountModel = require("../db/models/account");
 const sendEmail = require("../utils/email");
 const welcomeTemplate = require("../emailTemplates/welcome");
-
 const DesignerController = {};
-require("dotenv").config();
 
 const generateJWT = (designer, jwtExp) =>
   jwt.sign(
@@ -26,18 +25,12 @@ const checkErorrCode = (err, res) => {
   }
   return res.status(400).json({ error: err.message });
 };
+
 // Sign Up
 DesignerController.createAccount = async (req, res) => {
   const jwtExp = Math.floor(Date.now() / 1000) + 86400; // 1 day expiration
-  const {
-    name,
-    email,
-    password,
-    confirmPassword,
-    description,
-    phoneNumber,
-    image,
-  } = req.body;
+  const { name, email, password, confirmPassword, description, phoneNumber } =
+    req.body;
   try {
     if (password !== confirmPassword) {
       return res.status(400).json({ error: "Passwords do not match" });
@@ -52,17 +45,27 @@ DesignerController.createAccount = async (req, res) => {
       password,
       description,
       phoneNumber,
-      image,
     });
-    // Save the designer
-    await designer.save();
+
+    try {
+      const account = new AccountModel({
+        user: designer._id,
+        password_hash: password,
+        model_type: "Designer",
+      });
+      await account.save();
+    } catch (err) {
+      await designer.deleteOne();
+      throw err;
+    }
     const token = await generateJWT(designer, jwtExp);
     const emailText = welcomeTemplate(designer.name);
     sendEmail(email, "Welcome onboard", emailText);
-    res.cookie("jwt", token, { httpOnly: false });
-    res.json(token);
+    res
+      .status(201)
+      .cookie("jwt", token, { httpOnly: false })
+      .json({ token: token });
   } catch (err) {
-    console.log(err);
     checkErorrCode(err, res);
   }
 };
@@ -79,14 +82,22 @@ DesignerController.signin = async (req, res) => {
     if (!designer) {
       return res.status(400).json({ error: "Wrong username or password" });
     }
+    const account = await AccountModel.findOne({
+      user: designer._id,
+    });
+    if (!account) {
+      return res.status(400).json({
+        error: "Couldn't find your account",
+      });
+    }
     // Compare the provided password with the hashed password in the designer object
-    const passwordMatches = await designer.comparePassword(password);
+    const passwordMatches = await account.comparePassword(password);
     if (!passwordMatches) {
       return res.status(400).json({ error: "Wrong username or password" });
     }
     const token = await generateJWT(designer, jwtExp);
     res.cookie("jwt", token, { httpOnly: false });
-    res.json(token);
+    res.json({ token: token });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -95,51 +106,80 @@ DesignerController.signin = async (req, res) => {
 DesignerController.signout = (req, res) => {
   try {
     res.clearCookie("jwt");
-    res.redirect(`${process.env.DOMAIN}/api-docs`);
+    res.json({ message: "Signout successfully" });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
+
 // Update designer account
+//Todo: add the new data to the rwquest body
 DesignerController.updateAccount = async (req, res) => {
   try {
-    console.log(req.designer); // Make sure req.designer is properly defined when calling the function
-    const { name, email, description, image, phone_number } = req.body;
-    // Find the designer by ID
-    const updatedDesigner = await DesignerModel.findById(req.designer._id);
+    const { name, email, description, phoneNumber, password, confirmPassword } =
+      req.body;
+    const designerId = req.designer.id;
+
+    const updatedDesigner = await DesignerModel.findByIdAndUpdate(
+      designerId,
+      {
+        name,
+        email,
+        description,
+        phoneNumber,
+      },
+      { new: true }
+    );
     if (!updatedDesigner) {
       return res.status(404).json({ error: "designer not found" });
     }
-    // Update designer details
-    updatedDesigner.name = name;
-    updatedDesigner.email = email;
-    updatedDesigner.description = description;
-    updatedDesigner.image = image;
-    updatedDesigner.phone_number = phone_number;
-    // Save the updated designer
-    await updatedDesigner.save();
+
+    if (password && confirmPassword) {
+      if (password !== confirmPassword) {
+        return res.status(400).json({ error: "Passwords do not match" });
+      }
+      const account = await AccountModel.findOne({ user: designerId });
+      if (!account) {
+        return res.status(404).json({ error: "account not found" });
+      }
+      account.password_hash = password;
+      await account.save();
+    }
+    req.designer = updatedDesigner;
     res.json({
       message: "designer details updated successfully",
       designer: updatedDesigner,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error while updating designer details", error });
+    if (
+      error.message ===
+      "Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long."
+    ) {
+      return res.status(400).json({ error: error.message });
+    }
+    res.status(500).json({ error: error.message });
   }
 };
 // Delete designer account
+//TODO: DELETE ALL THINGS CREATED BY THE DESIGNER
 DesignerController.deleteAccount = async (req, res) => {
-  const { designer } = req;
+  const designerId = req.designer.id;
   try {
     // Find the designer by ID
-    const deletedDesigner = await DesignerModel.findByIdAndDelete(designer.id);
+    const deletedDesigner = await DesignerModel.findByIdAndDelete(designerId);
     if (!deletedDesigner) {
       return res.status(404).json({ error: "designer not found" });
     }
+    // Delete the designer's account
+    const deletedAccount = await AccountModel.findOneAndDelete({
+      user: designerId,
+    });
+    if (!deletedAccount) {
+      return res.status(404).json({ error: "account not found" });
+    }
     res.clearCookie("jwt");
-    // res.json({ message: "designer account deleted successfully" });
-    res.redirect(`${process.env.DOMAIN}/api-docs`);
+    res.json({ message: "designer account deleted successfully" });
+    // res.redirect(`${process.env.DOMAIN}/api-docs`);
   } catch (error) {
     res.status(422).json({ error: "Error while deleting designer account" });
   }
@@ -164,7 +204,7 @@ DesignerController.createEvent = async (req, res) => {
     }
 
     // Create a new event using the EventModel
-    const event = new EventModel({
+    const event = new OrderModel({
       title,
       organizer: designer._id, // Assign the designer's ID as the organizer
       description,
@@ -201,7 +241,7 @@ DesignerController.getDesignerEvents = async (req, res) => {
       return res.status(404).json({ message: "designer not found" });
     }
     // Find all events created by the designer
-    const events = await EventModel.find({ organizer: DesignerId });
+    const events = await OrderModel.find({ organizer: DesignerId });
     res.json(events);
   } catch (error) {
     res.status(500).json({
@@ -229,7 +269,7 @@ DesignerController.updateEvent = async (req, res) => {
       return res.status(404).json({ message: "designer not found" });
     }
     // Check if the event exists and is created by the designer
-    const event = await EventModel.findOne({
+    const event = await OrderModel.findOne({
       _id: eventId,
       organizer: designer.id,
     });
@@ -269,7 +309,7 @@ DesignerController.deleteEvent = async (req, res) => {
       return res.status(404).json({ message: "designer not found" });
     }
     // Check if the event exists and is created by the designer
-    const event = await EventModel.findOne({
+    const event = await OrderModel.findOne({
       id: eventId,
       organizer: designer.id,
     });
@@ -277,13 +317,13 @@ DesignerController.deleteEvent = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
     // Remove the event from the designer's events array
-    const deletedEvent = await EventModel.findById(event._id);
+    const deletedEvent = await OrderModel.findById(event._id);
     if (!deletedEvent) {
       return res.json({ message: "Event has already been deleted" });
     }
 
     // Delete the event from the EventModel collection
-    await EventModel.deleteOne({ _id: event._id });
+    await OrderModel.deleteOne({ _id: event._id });
 
     res.json({ message: "Event successfully deleted" });
   } catch (error) {
@@ -318,7 +358,7 @@ DesignerController.getAttendingUsersOfOrgEvents = async (req, res) => {
       return res.status(404).json({ message: "designer not found" });
     }
     // Find all events created by the designer
-    const events = await EventModel.find({ organizer: DesignerId });
+    const events = await OrderModel.find({ organizer: DesignerId });
     if (events.length === 0) {
       return res.status(404).json({ message: "Events not found" });
     }
@@ -350,7 +390,7 @@ DesignerController.notifyAttendingUsers = async (req, res) => {
     const { designer } = req;
     const { message } = req.body;
 
-    const events = await EventModel.find({ organizer: designer.id });
+    const events = await OrderModel.find({ organizer: designer.id });
     if (events.length === 0) {
       return res.status(404).json({ message: "Events not found" });
     }
@@ -378,7 +418,7 @@ DesignerController.notifyEventChanges = async (req, res) => {
     const { eventId } = req;
     const { message } = req.body;
 
-    const event = await EventModel.findById(eventId);
+    const event = await OrderModel.findById(eventId);
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
@@ -428,7 +468,7 @@ DesignerController.filterEvents = async (req, res) => {
     }
 
     // Find events based on the combined query
-    const events = await EventModel.find(baseQuery);
+    const events = await OrderModel.find(baseQuery);
 
     if (!events || events.length === 0) {
       return res.status(404).json({ message: "Events not found" });
@@ -448,7 +488,7 @@ DesignerController.searchEvents = async (req, res) => {
     const { query } = req.query;
 
     // Find events created by the designer matching the search query in the title or description
-    const events = await EventModel.find({
+    const events = await OrderModel.find({
       organizer: DesignerId,
       $or: [
         { title: { $regex: query, $options: "i" } },

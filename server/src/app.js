@@ -12,18 +12,12 @@ const path = require("path"); // Import the 'path' module
 const port = process.env.NODE_LOCAL_PORT || 5000;
 const app = express();
 
-function attachUserToRequest(req, res, next) {
-  res.locals.user = req.user;
-  next();
-}
-
 const middleware = [
   cookieParser(),
   bodyParser.urlencoded({
     extended: false,
   }),
   express.json(),
-  attachUserToRequest,
 ];
 
 middleware.forEach((item) => {
@@ -58,3 +52,6 @@ if (process.env.NODE_ENV !== "test") {
 updateExpiredEvents();
 
 module.exports = app;
+
+
+  //Todo: edit package.json, remove the comments and remove unnecessary dependencies

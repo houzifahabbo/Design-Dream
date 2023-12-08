@@ -1,3 +1,9 @@
+/* 
+#161f2e
+#5fbce2
+#fdfdfd
+*/
+
 * {
     margin: 0;
     padding: 0;
@@ -6,8 +12,13 @@
 header{
     width: 100%;
     height: 100%;
-    background-color: black;
+    background-color: #161f2e;
+    color:#fdfdfd;
     padding: 20px;
+}
+header img{
+    height: 70px;
+    width: 75px;
 }
 
 header form{

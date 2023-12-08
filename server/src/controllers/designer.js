@@ -25,6 +25,64 @@ const checkErorrCode = (err, res) => {
   }
   return res.status(400).json({ error: err.message });
 };
+//image upload
+  // const designer = await DesignerModel.findOne({ name: "DesignDream2" });
+  // res.contentType(designer.logo.contentType);
+  // res.send(designer.logo.imageData);
+DesignerController.addOptions = async (req, res) => {
+  const designerId = req.designer.id;
+  const { type, label, required} = req.body;
+
+  try {
+    const designer = await DesignerModel.findById(designerId);
+    const option = {
+      type,
+      label,
+      required,
+    }
+    if (!designer) {
+      return res.status(404).send("Designer not found");
+    }
+
+    if (type === "file") {
+      const { fileType } = req.body;
+      option.fileType = fileType;
+      
+    } else if (type === "text field" || type === "text area") {
+      const { placeholder, data, dataType } = req.body;
+      option.placeholder = placeholder;
+      option.data = data;
+      option.dataType = dataType;
+    } else if (type === "dropdown" || type === "radio button" || type === "checkbox") {
+      const { optionList , other, otherText } = req.body;
+      option.optionList = optionList;
+      option.other = other;
+      option.otherText = otherText;
+    } else if (type === "date" || type === "time") {
+      const { min, max } = req.body;
+      option.min = min;
+      option.max = max;
+    } else if (type === "date and time") {
+      const { min, max, minTime, maxTime } = req.body;
+      option.min = min;
+      option.max = max;
+      option.minTime = minTime;
+      option.maxTime = maxTime;
+    } else if (type === "location") {
+      const { location } = req.body;
+      option.location = location;
+    } else {
+      return res.status(400).json({ error: "Invalid option type" });
+    }
+
+    designer.options.push(option);
+  
+    await designer.save();
+    res.status(201).json(option);
+  } catch (error) {
+    res.status(500).json({error: error.message});
+  }
+};
 
 // Sign Up
 DesignerController.createAccount = async (req, res) => {

@@ -12,12 +12,14 @@ const path = require("path"); // Import the 'path' module
 const port = process.env.NODE_LOCAL_PORT || 5000;
 const app = express();
 
+
 const middleware = [
   cookieParser(),
   bodyParser.urlencoded({
     extended: false,
   }),
   express.json(),
+  express.static(path.join(__dirname, "../../client")),
 ];
 
 middleware.forEach((item) => {
@@ -41,6 +43,11 @@ middleware.forEach((item) => {
 // });
 
 app.use("/", apiRoutes);
+
+app.get("/", (req, res) => {
+  res.sendFile("index.html");
+});
+
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(port, () => {

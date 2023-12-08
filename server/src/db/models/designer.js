@@ -1,4 +1,32 @@
 const mongoose = require("mongoose");
+
+const optionSchema = mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: [
+        "date",
+        "time",
+        "location",
+        "date and time",
+        "text field",
+        "checkbox",
+        "radio button",
+        "dropdown",
+        "file",
+        "text area",
+      ],
+    },
+    label: {
+      type: String,
+    },
+    required: {
+      type: Boolean,
+    },
+  },
+  { discriminatorKey: "type", _id: false }
+);
+
 //Todo: Add validation for email and phone number
 const designerSchema = mongoose.Schema({
   name: {
@@ -25,6 +53,7 @@ const designerSchema = mongoose.Schema({
       type: String,
     },
   },
+  options: [optionSchema],
   photos: [
     {
       imageData: {
@@ -58,41 +87,95 @@ const designerSchema = mongoose.Schema({
   },
 });
 
-// function validatePasswordStrength(password) {
-//   const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
-//   return passwordRegex.test(password);
-// }
+designerSchema.path("options").discriminator(
+  "text field" || "text area",
+  new mongoose.Schema({
+    placeholder: {
+      type: String,
+    },
+    dataType: {
+      type: String,
+      enum: ["text", "number", "email", "tel", "url"],
+    },
+    data: {
+      type: String,
+    },
+  })
+);
 
-// designerSchema.pre("save", async function (next) {
-//   if (this.isModified("password") || this.isNew) {
-//     // Validate the password
-//     if (!validatePasswordStrength(this.password)) {
-//       return next(
-//         new Error(
-//           "Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long."
-//         )
-//       );
-//     }
-//     const saltRounds = 10;
-//     const hashedPassword = await bcrypt.hash(this.password, saltRounds);
-//     this.password = hashedPassword;
-//   }
-//   next();
-// });
+designerSchema.path("options").discriminator(
+  "checkbox" || "radio button" || "dropdown",
+  new mongoose.Schema({
+    optionList: [
+      {
+        type: String,
+        required: true,
+      },
+    ],
+    other: {
+      type: Boolean,
+    },
+    otherText: {
+      type: String,
+    },
+  })
+);
 
-// designerSchema.methods.comparePassword = function (password) {
-//   return bcrypt.compare(password, this.password);
-// };
+designerSchema.path("options").discriminator(
+  "file",
+  new mongoose.Schema({
+    fileType: {
+      type: String,
+      enum: ["image", "video", "audio", "pdf", "doc", "docx", "ppt", "pptx"],
+    },
+  })
+);
+
+designerSchema.path("options").discriminator(
+  "date" || "time",
+  new mongoose.Schema({
+    min: {
+      type: Date,
+    },
+    max: {
+      type: Date,
+    },
+  })
+);
+
+designerSchema.path("options").discriminator(
+  "date and time",
+  new mongoose.Schema({
+    min: {
+      type: Date,
+    },
+    max: {
+      type: Date,
+    },
+    minTime: {
+      type: Date,
+    },
+    maxTime: {
+      type: Date,
+    },
+  })
+);
+
+designerSchema.path("options").discriminator(
+  "location",
+  new mongoose.Schema({
+    location: {
+      type: String,
+    },
+  })
+);
 
 module.exports = mongoose.model("Designer", designerSchema);
 
- // password: {
-  //   type: String,
-  //   required: true,
-  // },
-  // events: [
-  //   {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: "Event",
-  //   },
-  // ],
+
+// events: [
+//   {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: "Event",
+//   },
+// ],

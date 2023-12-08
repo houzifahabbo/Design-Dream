@@ -28,9 +28,12 @@ const authentication = require("../middleware/authentication");
 const storage = multer.memoryStorage(); // Configuring multer to use memory storage
 const upload = multer({ storage: storage });
 
-routes.get("/test", async (req, res) => {
-  res.json(await DesignerModel.find({}));
-});
+routes.post(
+  "/addOptions",
+  authentication.authMiddleware,
+  authentication.isDesigner,
+  DesignerController.addOptions
+);
 
 // routes.get('/', DesignerController.getDesigners);
 // routes.post('/', DesignerController.createDesigner);

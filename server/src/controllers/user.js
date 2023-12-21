@@ -1,5 +1,6 @@
 const UserModel = require("../db/models/user");
 const AccountModel = require("../db/models/account");
+const TokenModel = require("../db/models/token");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/email");
 const resetPasswordTemplate = require("../emailTemplates/resetPassword");
@@ -31,7 +32,7 @@ const checkErorrCode = (err, res) => {
   });
 };
 
-userController.postSignin = async (req, res) => {
+userController.signin = async (req, res) => {
   const { emailOrUsername, password, rememberMe } = req.body;
   const jwtExp = rememberMe
     ? Math.floor(Date.now() / 1000) + 1209600
@@ -78,7 +79,7 @@ userController.postSignin = async (req, res) => {
   }
 };
 
-userController.postSignup = async (req, res) => {
+userController.signup = async (req, res) => {
   const jwtExp = Math.floor(Date.now() / 1000) + 86400; // 1 day expiration
   const {
     username,
@@ -134,29 +135,8 @@ userController.postSignup = async (req, res) => {
   }
 };
 
-userController.getUserById = async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    const user = await UserModel.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
-    }
-
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({
-      message: "Error while fetching user",
-      error,
-    });
-  }
-};
-
 //TODO: fix this function to match the designer function
-userController.updateProfile = async (req, res) => {
+userController.updateAccount = async (req, res) => {
   const user = req.user;
   const {
     password,
@@ -201,7 +181,7 @@ userController.updateProfile = async (req, res) => {
   }
 };
 
-userController.deleteProfile = async (req, res) => {
+userController.deleteAccount = async (req, res) => {
   const user = req.user;
   try {
     const deletedUser = await UserModel.findByIdAndDelete(user.id);
@@ -235,8 +215,8 @@ userController.signout = (req, res) => {
   }
 };
 
-userController.profile = async (req, res) => {
-  const { username } = req.params;
+userController.getUserByUsername = async (req, res) => {
+  const { username } = req.query;
   try {
     const profile = await UserModel.findOne({
       username,
@@ -265,19 +245,15 @@ userController.forgotPassword = async (req, res) => {
         message: "User not found",
       });
     }
-    const token = jwt.sign(
-      {
-        email,
-      },
-      {
-        expiresIn: "10m",
-      },
-      process.env.JWT_SECRET
-    );
-    const emailText = resetPasswordTemplate(token, user.username);
+    const token = await TokenModel.create({
+      account: user._id,
+      model_type: "User",
+    });
+
+    const emailText = resetPasswordTemplate(token.token, user.username);
     sendEmail(email, "Reset Password", emailText);
     res.json({
-      message: "paymentsuccessfully",
+      message: "email sent successfully",
     });
   } catch (err) {
     res.status(400).json({
@@ -288,30 +264,30 @@ userController.forgotPassword = async (req, res) => {
 
 userController.resetPassword = async (req, res) => {
   const { password, confirmPassword } = req.body;
-  const token = req.query.token;
   try {
     if (password !== confirmPassword) {
       return res.status(400).json({
         error: "passwords do not match",
       });
     }
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    const email = decodedToken.email;
-    const user = await UserModel.findOne({
-      email,
-    }).populate("account");
-    if (!user) {
+    const token = await TokenModel.findOneAndDelete({
+      token: req.query.token,
+    });
+    if (!token) {
       return res.status(404).json({
-        message: "User not found",
+        message: "Token not found",
       });
     }
-    if (!user.account) {
+    const account = await AccountModel.findOne({
+      user: token.account,
+    });
+    if (!account) {
       return res.status(404).json({
-        message: "Sign in with google",
+        message: "Account not found",
       });
     }
-    user.account.password_hash = password;
-    await user.account.save();
+    account.password_hash = password;
+    await account.save();
     res.json({
       message: "Password updated successfully",
     });
@@ -323,3 +299,6 @@ userController.resetPassword = async (req, res) => {
 };
 
 module.exports = userController;
+
+
+//Todo: Edit google auth and ndoemailer

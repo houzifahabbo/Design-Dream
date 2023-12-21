@@ -1,61 +1,56 @@
 const express = require("express");
 const routes = express.Router();
 const multer = require("multer");
-const DesignerModel = require("../db/models/designer");
 const DesignerController = require("../controllers/designer");
 const authentication = require("../middleware/authentication");
 
-// const url = "mongodb://localhost:27017/arch";
-// const storage = new GridFsStorage({
-//   url,
-//   file: (req, file) => {
-//     console.log(file);
-//     //If it is an image, save to photos bucket
-//     if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
-//       return {
-//         bucketName: "photos",
-//         filename: `${Date.now()}_${file.originalname}`,
-//       };
-//     } else {
-//       //Otherwise save to default bucket
-//       return `${Date.now()}_${file.originalname}`;
-//     }
-//   },
-// });
-
-// const upload = multer({ storage });
-
-const storage = multer.memoryStorage(); // Configuring multer to use memory storage
+const storage = multer.memoryStorage(
+  { limits: { files: 10, fileSize: 16 * 1024 * 1024 } },
+  {
+    fileFilter: function (req, file, cb) {
+      const filetypes = /jpeg|jpg|png/;
+      if (!filetypes.test(path.extname(file.originalname).toLowerCase())) {
+        return cb(new Error("Only image files are allowed!"));
+      }
+      cb(null, true);
+    },
+  }
+);
 const upload = multer({ storage: storage });
 
+// routes.post(
+//   "/test",
+//   authentication.authMiddleware,
+//   authentication.isDesigner,
+//   upload.array("photos"),
+//   DesignerController.test
+// );
+
 routes.post(
-  "/addOptions",
+  "/",
   authentication.authMiddleware,
   authentication.isDesigner,
-  DesignerController.addOptions
+  upload.array("photos"),
+  DesignerController.editProfile
 );
 
-// routes.get('/', DesignerController.getDesigners);
-// routes.post('/', DesignerController.createDesigner);
+routes.get("/", DesignerController.getDesigners);
 
-// New routes for designer functionalities related to events
+routes.get("/:DesignerName", DesignerController.getDesignerByName);
 
-// Create an account (designer)
-routes.post(
-  "/signup",
-  authentication.isAuthenticated,
-  upload.single("logo"),
-  DesignerController.createAccount
-);
-
-// Signin to the designer account
 routes.post(
   "/signin",
   authentication.isAuthenticated,
   DesignerController.signin
 );
 
-// Sign out from designer account
+routes.post(
+  "/signup",
+  authentication.isAuthenticated,
+  upload.single("logo"),
+  DesignerController.signup
+);
+
 routes.post(
   "/signout",
   authentication.authMiddleware,
@@ -63,28 +58,29 @@ routes.post(
   DesignerController.signout
 );
 
-// PUBLIC Get designer by ID
-routes.get("/:DesignerId", DesignerController.getDesignerById);
-
-// PUBLIC Get all events created by the designer
-routes.get("/:DesignerId/events", DesignerController.getDesignerEvents);
-
-// Update designer details
-routes.put(
-  "/",
+routes.get(
+  "/account",
   authentication.authMiddleware,
   authentication.isDesigner,
+  DesignerController.getAccount
+);
+
+routes.put(
+  "/account",
+  authentication.authMiddleware,
+  authentication.isDesigner,
+  upload.single("logo"),
   DesignerController.updateAccount
 );
 
-// Delete designer account
 routes.delete(
-  "/",
+  "/account",
   authentication.authMiddleware,
   authentication.isDesigner,
   DesignerController.deleteAccount
 );
 
+routes.get("/:DesignerId/events", DesignerController.getDesignerEvents);
 // Create an event for the designer
 routes.post(
   "/createEvent",

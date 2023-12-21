@@ -25,67 +25,61 @@ const checkErorrCode = (err, res) => {
   }
   return res.status(400).json({ error: err.message });
 };
+
 //image upload
-  // const designer = await DesignerModel.findOne({ name: "DesignDream2" });
-  // res.contentType(designer.logo.contentType);
-  // res.send(designer.logo.imageData);
-DesignerController.addOptions = async (req, res) => {
-  const designerId = req.designer.id;
-  const { type, label, required} = req.body;
+// const designer = await DesignerModel.findOne({ name: "DesignDream2" });
+// res.contentType(designer.logo.contentType);
+// res.send(designer.logo.imageData);
+
+DesignerController.test = async (req, res) => {
+  const photos = req.files;
 
   try {
-    const designer = await DesignerModel.findById(designerId);
-    const option = {
-      type,
-      label,
-      required,
-    }
-    if (!designer) {
-      return res.status(404).send("Designer not found");
-    }
-
-    if (type === "file") {
-      const { fileType } = req.body;
-      option.fileType = fileType;
-      
-    } else if (type === "text field" || type === "text area") {
-      const { placeholder, data, dataType } = req.body;
-      option.placeholder = placeholder;
-      option.data = data;
-      option.dataType = dataType;
-    } else if (type === "dropdown" || type === "radio button" || type === "checkbox") {
-      const { optionList , other, otherText } = req.body;
-      option.optionList = optionList;
-      option.other = other;
-      option.otherText = otherText;
-    } else if (type === "date" || type === "time") {
-      const { min, max } = req.body;
-      option.min = min;
-      option.max = max;
-    } else if (type === "date and time") {
-      const { min, max, minTime, maxTime } = req.body;
-      option.min = min;
-      option.max = max;
-      option.minTime = minTime;
-      option.maxTime = maxTime;
-    } else if (type === "location") {
-      const { location } = req.body;
-      option.location = location;
-    } else {
-      return res.status(400).json({ error: "Invalid option type" });
-    }
-
-    designer.options.push(option);
-  
-    await designer.save();
-    res.status(201).json(option);
+    photos.forEach((element) => {
+      console.log(element);
+    });
+    res.send("done");
   } catch (error) {
-    res.status(500).json({error: error.message});
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Sign Up
-DesignerController.createAccount = async (req, res) => {
+DesignerController.getDesigners = async (req, res) => {
+  try {
+    // find all designers and get the avg rating for each one
+    const designers = await DesignerModel.find(
+      {},
+      { logo: 0, description: 0, photos: 0 }
+    );
+    if (!designers) {
+      return res.status(404).json({ message: "designers not found" });
+    }
+
+    res.json(designers);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+DesignerController.getDesignerByName = async (req, res) => {
+  try {
+    const { DesignerName } = req.params;
+    const designer = await DesignerModel.findOne({ name: DesignerName });
+    if (!designer) {
+      return res.status(404).json({ message: "designer not found" });
+    }
+    res.json(designer);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error while getting designer",
+      error,
+    });
+  }
+};
+
+DesignerController.signup = async (req, res) => {
   const jwtExp = Math.floor(Date.now() / 1000) + 86400; // 1 day expiration
   const { name, email, password, confirmPassword, description, phoneNumber } =
     req.body;
@@ -132,7 +126,7 @@ DesignerController.createAccount = async (req, res) => {
     checkErorrCode(err, res);
   }
 };
-// Sign In
+
 DesignerController.signin = async (req, res) => {
   const { emailOrUsername, password, rememberMe } = req.body;
   const jwtExp = rememberMe
@@ -165,7 +159,7 @@ DesignerController.signin = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
-// Sign out
+
 DesignerController.signout = (req, res) => {
   try {
     res.clearCookie("jwt");
@@ -175,12 +169,24 @@ DesignerController.signout = (req, res) => {
   }
 };
 
-// Update designer account
-//Todo: add the new data to the rwquest body
+DesignerController.getAccount = async (req, res) => {
+  try {
+    const designerId = req.designer.id;
+    const designer = await DesignerModel.findById(designerId);
+    if (!designer) {
+      return res.status(404).json({ error: "designer not found" });
+    }
+    res.json(designer);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 DesignerController.updateAccount = async (req, res) => {
   try {
-    const { name, email, description, phoneNumber, password, confirmPassword } =
+    const { name, email, password, confirmPassword, description, phoneNumber } =
       req.body;
+    const { buffer, mimetype } = req.file;
     const designerId = req.designer.id;
 
     const updatedDesigner = await DesignerModel.findByIdAndUpdate(
@@ -188,8 +194,13 @@ DesignerController.updateAccount = async (req, res) => {
       {
         name,
         email,
+        password,
         description,
         phoneNumber,
+        logo: {
+          imageData: buffer,
+          contentType: mimetype,
+        },
       },
       { new: true }
     );
@@ -223,8 +234,7 @@ DesignerController.updateAccount = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-// Delete designer account
-//TODO: DELETE ALL THINGS CREATED BY THE DESIGNER
+
 DesignerController.deleteAccount = async (req, res) => {
   const designerId = req.designer.id;
   try {
@@ -247,171 +257,77 @@ DesignerController.deleteAccount = async (req, res) => {
     res.status(422).json({ error: "Error while deleting designer account" });
   }
 };
-// Create an Event
-DesignerController.createEvent = async (req, res) => {
-  try {
-    const {
-      title,
-      description,
-      location,
-      category,
-      start_date,
-      end_date,
-      image,
-    } = req.body;
 
-    // Check if the designer exists
-    const designer = await DesignerModel.findById(req.designer.id);
-    if (!designer) {
-      return res.status(404).json({ message: "designer not found" });
-    }
-
-    // Create a new event using the EventModel
-    const event = new OrderModel({
-      title,
-      organizer: designer._id, // Assign the designer's ID as the organizer
-      description,
-      location,
-      category,
-      start_date,
-      end_date,
-      image,
-    });
-
-    // Save the event
-    await event.save();
-    // Update the designer's events array with the new event
-    designer.events.push(event._id);
-    await designer.save();
-    res.json({
-      message: "Event successfully created",
-      event,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error while creating event",
-      error: error.message,
-    });
-  }
-};
-// Gets every events from the DesignerId
-DesignerController.getDesignerEvents = async (req, res) => {
-  try {
-    const { DesignerId } = req.params;
-    // Check if the designer exists
-    const designer = await DesignerModel.findById(DesignerId);
-    if (!designer) {
-      return res.status(404).json({ message: "designer not found" });
-    }
-    // Find all events created by the designer
-    const events = await OrderModel.find({ organizer: DesignerId });
-    res.json(events);
-  } catch (error) {
-    res.status(500).json({
-      message: "Error while getting events",
-      error,
-    });
-  }
-};
-// Updates an existing event
-DesignerController.updateEvent = async (req, res) => {
-  try {
-    const { eventId } = req;
-    const {
-      title,
-      description,
-      location,
-      category,
-      start_date,
-      end_date,
-      image,
-    } = req.body;
-    // Check if the designer exists
-    const designer = await DesignerModel.findById(req.designer.id);
-    if (!designer) {
-      return res.status(404).json({ message: "designer not found" });
-    }
-    // Check if the event exists and is created by the designer
-    const event = await OrderModel.findOne({
-      _id: eventId,
-      organizer: designer.id,
-    });
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" });
-    }
-    // Update the event data
-    // Object.assign(event, eventDataToUpdate);
-
-    (event.title = title),
-      (event.description = description),
-      (event.location = location),
-      (event.category = category),
-      (event.start_date = start_date),
-      (event.end_date = end_date),
-      (event.image = image),
-      await event.save();
-    res.json({
-      message: "Event successfully updated",
-      event,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error while updating event",
-      error: error.message,
-    });
-  }
-};
-// Deletes an existing event
-DesignerController.deleteEvent = async (req, res) => {
-  try {
-    const { eventId } = req.eventId;
-
-    // Check if the designer exists
-    const designer = await DesignerModel.findById(req.designer.id);
-    if (!designer) {
-      return res.status(404).json({ message: "designer not found" });
-    }
-    // Check if the event exists and is created by the designer
-    const event = await OrderModel.findOne({
-      id: eventId,
-      organizer: designer.id,
-    });
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" });
-    }
-    // Remove the event from the designer's events array
-    const deletedEvent = await OrderModel.findById(event._id);
-    if (!deletedEvent) {
-      return res.json({ message: "Event has already been deleted" });
-    }
-
-    // Delete the event from the EventModel collection
-    await OrderModel.deleteOne({ _id: event._id });
-
-    res.json({ message: "Event successfully deleted" });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error while deleting event",
-      error: error.message,
-    });
-  }
-};
 // Get oranization by id
-DesignerController.getDesignerById = async (req, res) => {
+
+DesignerController.editProfile = async (req, res) => {
+  const designerId = req.designer.id;
+  const { options, services } = req.body;
+  const photos = req.files;
+
   try {
-    const { DesignerId } = req.params;
-    const designer = await DesignerModel.findById(DesignerId);
+    const designer = await DesignerModel.findById(designerId);
     if (!designer) {
-      return res.status(404).json({ message: "designer not found" });
+      return res.status(404).send("Designer not found");
     }
-    res.json(designer);
+    if (options) {
+      options.forEach((optionData) => {
+        const option = {
+          type: optionData.type,
+          label: optionData.label,
+          required: optionData.required,
+          price: optionData.optionPrice,
+          placeholder: optionData.placeholder,
+        };
+        if (optionData.type === "file") {
+          const { fileType } = optionData;
+          option.fileType = fileType;
+        } else if (
+          optionData.type === "text field" ||
+          optionData.type === "text area"
+        ) {
+          const { data, dataType } = req.body;
+          option.data = data;
+          option.dataType = dataType;
+        } else if (
+          optionData.type === "dropdown" ||
+          optionData.type === "radio button" ||
+          optionData.type === "checkbox"
+        ) {
+          const { optionList, other, otherText } = optionData;
+          option.optionList = optionList;
+          option.other = other;
+          option.otherText = otherText;
+        } else if (optionData.type === "date" || optionData.type === "time") {
+          const { min, max } = optionData;
+          option.min = min;
+          option.max = max;
+        } else if (optionData.type === "date and time") {
+          const { min, max, minTime, maxTime } = optionData;
+          option.min = min;
+          option.max = max;
+          option.minTime = minTime;
+          option.maxTime = maxTime;
+        } else if (optionData.type === "location") {
+          const { location } = optionData;
+          option.location = location;
+        }
+      });
+      designer.options = options;
+    }
+    if (services) {
+      designer.services = services;
+    }
+    if (photos) {
+      designer.photos = photos;
+    }
+    await designer.save();
+    res.status(201).json(designer.options);
   } catch (error) {
-    res.status(500).json({
-      message: "Error while getting designer",
-      error,
-    });
+    res.status(500).json({ error: error.message });
   }
 };
+
 DesignerController.getAttendingUsersOfOrgEvents = async (req, res) => {
   try {
     const { DesignerId } = req.params;
@@ -631,4 +547,156 @@ DesignerController.getRatings = async (req, res) => {
       .json({ message: "Error while getting ratings", error: error.message });
   }
 };
+
+// Create an Event
+DesignerController.createEvent = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      location,
+      category,
+      start_date,
+      end_date,
+      image,
+    } = req.body;
+
+    // Check if the designer exists
+    const designer = await DesignerModel.findById(req.designer.id);
+    if (!designer) {
+      return res.status(404).json({ message: "designer not found" });
+    }
+
+    // Create a new event using the EventModel
+    const event = new OrderModel({
+      title,
+      organizer: designer._id, // Assign the designer's ID as the organizer
+      description,
+      location,
+      category,
+      start_date,
+      end_date,
+      image,
+    });
+
+    // Save the event
+    await event.save();
+    // Update the designer's events array with the new event
+    designer.events.push(event._id);
+    await designer.save();
+    res.json({
+      message: "Event successfully created",
+      event,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error while creating event",
+      error: error.message,
+    });
+  }
+};
+// Gets every events from the DesignerId
+DesignerController.getDesignerEvents = async (req, res) => {
+  try {
+    const { DesignerId } = req.params;
+    // Check if the designer exists
+    const designer = await DesignerModel.findById(DesignerId);
+    if (!designer) {
+      return res.status(404).json({ message: "designer not found" });
+    }
+    // Find all events created by the designer
+    const events = await OrderModel.find({ organizer: DesignerId });
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error while getting events",
+      error,
+    });
+  }
+};
+// Updates an existing event
+DesignerController.updateEvent = async (req, res) => {
+  try {
+    const { eventId } = req;
+    const {
+      title,
+      description,
+      location,
+      category,
+      start_date,
+      end_date,
+      image,
+    } = req.body;
+    // Check if the designer exists
+    const designer = await DesignerModel.findById(req.designer.id);
+    if (!designer) {
+      return res.status(404).json({ message: "designer not found" });
+    }
+    // Check if the event exists and is created by the designer
+    const event = await OrderModel.findOne({
+      _id: eventId,
+      organizer: designer.id,
+    });
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+    // Update the event data
+    // Object.assign(event, eventDataToUpdate);
+
+    (event.title = title),
+      (event.description = description),
+      (event.location = location),
+      (event.category = category),
+      (event.start_date = start_date),
+      (event.end_date = end_date),
+      (event.image = image),
+      await event.save();
+    res.json({
+      message: "Event successfully updated",
+      event,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error while updating event",
+      error: error.message,
+    });
+  }
+};
+// Deletes an existing event
+DesignerController.deleteEvent = async (req, res) => {
+  try {
+    const { eventId } = req.eventId;
+
+    // Check if the designer exists
+    const designer = await DesignerModel.findById(req.designer.id);
+    if (!designer) {
+      return res.status(404).json({ message: "designer not found" });
+    }
+    // Check if the event exists and is created by the designer
+    const event = await OrderModel.findOne({
+      id: eventId,
+      organizer: designer.id,
+    });
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+    // Remove the event from the designer's events array
+    const deletedEvent = await OrderModel.findById(event._id);
+    if (!deletedEvent) {
+      return res.json({ message: "Event has already been deleted" });
+    }
+
+    // Delete the event from the EventModel collection
+    await OrderModel.deleteOne({ _id: event._id });
+
+    res.json({ message: "Event successfully deleted" });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error while deleting event",
+      error: error.message,
+    });
+  }
+};
 module.exports = DesignerController;
+
+

@@ -215,7 +215,7 @@ const resetPasswordTemplate = (
       <!--[if mso]><style>.v-button {background: transparent !important;}</style><![endif]-->
     <div class="v-text-align" align="center">
       <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="" style="height:52px; v-text-anchor:middle; width:205px;" arcsize="2%"  stroke="f" fillcolor="#18163a"><w:anchorlock/><center style="color:#FFFFFF;font-family:'Lato',sans-serif;"><![endif]-->  
-        < a href = "${
+        <a href = "${
           process.env.DOMAIN
         }/user/resetPassword?token=${encodeURIComponent(token)}"
         target = "_blank"

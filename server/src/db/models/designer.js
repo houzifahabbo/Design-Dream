@@ -23,9 +23,17 @@ const optionSchema = mongoose.Schema(
     required: {
       type: Boolean,
     },
+    price: {
+      type: Number,
+    },
+    placeholder: {
+      type: String,
+    },
   },
   { discriminatorKey: "type", _id: false }
 );
+
+
 
 //Todo: Add validation for email and phone number
 const designerSchema = mongoose.Schema({
@@ -79,9 +87,21 @@ const designerSchema = mongoose.Schema({
       },
     },
   ],
-  googleId: {
-    type: String,
-  },
+  services: [
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      description: {
+        type: String,
+      },
+      price: {
+        type: Number,
+        required: true,
+      },
+    },
+  ],
   links: {
     type: Object,
   },
@@ -90,9 +110,6 @@ const designerSchema = mongoose.Schema({
 designerSchema.path("options").discriminator(
   "text field" || "text area",
   new mongoose.Schema({
-    placeholder: {
-      type: String,
-    },
     dataType: {
       type: String,
       enum: ["text", "number", "email", "tel", "url"],
@@ -108,8 +125,13 @@ designerSchema.path("options").discriminator(
   new mongoose.Schema({
     optionList: [
       {
-        type: String,
-        required: true,
+        text: {
+          type: String,
+          required: true,
+        },
+        price: {
+          type: Number,
+        },
       },
     ],
     other: {
@@ -170,12 +192,12 @@ designerSchema.path("options").discriminator(
   })
 );
 
+designerSchema.virtual("avgRating").get(function () {
+  let sum = 0;
+  this.ratings.forEach((rating) => {
+    sum += rating.rating;
+  });
+  return sum / this.ratings.length;
+});
+
 module.exports = mongoose.model("Designer", designerSchema);
-
-
-// events: [
-//   {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: "Event",
-//   },
-// ],

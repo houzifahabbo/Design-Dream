@@ -5,16 +5,8 @@ const authentication = require("../middleware/authentication");
 const passport = require("../utils/googleAuth");
 const googleCallbackMiddleware = require("../middleware/googleAuth");
 
-routes.post(
-  "/signin",
-  authentication.isAuthenticated,
-  userController.postSignin
-);
-routes.post(
-  "/signup",
-  authentication.isAuthenticated,
-  userController.postSignup
-);
+routes.post("/signin", authentication.isAuthenticated, userController.signin);
+routes.post("/signup", authentication.isAuthenticated, userController.signup);
 routes.get(
   "/google",
   passport.authenticate("google", {
@@ -36,11 +28,10 @@ routes.get(
   googleCallbackMiddleware
 );
 // Get user by ID
-routes.get("/:userId", userController.getUserById);
-routes.put("/", authentication.authMiddleware, userController.updateProfile);
-routes.delete("/", authentication.authMiddleware, userController.deleteProfile);
+routes.put("/", authentication.authMiddleware, userController.updateAccount);
+routes.delete("/", authentication.authMiddleware, userController.deleteAccount);
 routes.post("/signout", authentication.authMiddleware, userController.signout);
-routes.get("/profile/:username", userController.profile);
+routes.get("/", userController.getUserByUsername);
 routes.post(
   "/forgotPassword",
   authentication.isAuthenticated,

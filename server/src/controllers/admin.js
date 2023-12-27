@@ -1,8 +1,78 @@
 const EventModel = require("../db/models/order");
 const DesignerModel = require("../db/models/designer");
 const UserModel = require("../db/models/user");
+const OrderModel = require("../db/models/order");
+const AccountModel = require("../db/models/account");
 
 const adminController = {};
+
+adminController.restoreOrder = async (req, res) => {
+  const orderId = req.params.id;
+  try {
+    const order = await OrderModel.findByIdAndUpdate(
+      orderId,
+      { orderExpires: null },
+      { new: true }
+    );
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+    res.json({ message: "Order restored successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+adminController.restoreUser = async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      { userExpires: null },
+      { new: true }
+    );
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const account = await AccountModel.findOneAndUpdate(
+      { user: userId },
+      { accountExpires: null },
+      { new: true }
+    );
+    if (!account) {
+      return res.status(404).json({ error: "Account not found" });
+    }
+    res.json({ message: "User restored successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+adminController.restoreDesigner = async (req, res) => {
+  const designerId = req.params.id;
+  try {
+    const designer = await DesignerModel.findByIdAndUpdate(
+      designerId,
+      { designerExpires: null },
+      { new: true }
+    );
+    if (!designer) {
+      return res.status(404).json({ error: "Designer not found" });
+    }
+    const account = await AccountModel.findOneAndUpdate(
+      { user: designerId },
+      { accountExpires: null },
+      { new: true }
+    );
+    if (!account) {
+      return res.status(404).json({ error: "Account not found" });
+    }
+    res.json({ message: "Designer restored successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 // Admin-only route example
 adminController.adminOnlyRoute = (req, res) => {

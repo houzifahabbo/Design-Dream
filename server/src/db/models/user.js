@@ -38,6 +38,10 @@ const userSchema = mongoose.Schema({
     unique: true,
     sparse: true,
   },
+  userExpires: {
+    type: Date,
+    expires: null,
+  },
   // isAdmin: {
   //   type: Boolean,
   //   default: false,

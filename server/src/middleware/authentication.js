@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const DesignerModel = require("../db/models/designer");
 const EventModel = require("../db/models/order");
+const UserModel = require("../db/models/user");
 
 //TODO: CHECK IF isUser is needed or not
 const isAdminMiddleware = (req, res, next) => {
@@ -42,7 +43,7 @@ const isAuthenticated = (req, res, next) => {
   next();
 };
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   const token = req.cookies.jwt;
 
   if (!token) {
@@ -50,7 +51,16 @@ const authMiddleware = (req, res, next) => {
   }
   try {
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decodedToken; // Attach the user to the request object for later uses
+    const user = await UserModel.findById(decodedToken.id);
+    if (user) {
+      req.user = decodedToken; // Attach the user to the request object for later uses
+      return next();
+    }
+    const designer = await DesignerModel.findById(decodedToken.id);
+    if (designer) {
+      req.designer = decodedToken; // Attach the designer to the request object for later uses
+      return next();
+    }
     next();
   } catch (error) {
     res.status(401).json({ error: error.message });
@@ -79,9 +89,8 @@ const isDesigner = async (req, res, next) => {
 };
 
 const isUser = async (req, res, next) => {
-  const { user } = req;
   try {
-    const user = await UserModel.findById(user.id);
+    const user = await UserModel.findById(req.user.id);
     if (!user) {
       return res.status(403).send("Forbidden");
     }
@@ -138,4 +147,5 @@ module.exports = {
   isDesigner,
   isEventOwner,
   isAuthenticated,
+  isUser,
 };

@@ -21,7 +21,7 @@ const upload = multer({ storage: storage });
 // routes.post(
 //   "/test",
 //   authentication.authMiddleware,
-//   authentication.isDesigner,
+//   
 //   upload.array("photos"),
 //   DesignerController.test
 // );
@@ -29,7 +29,13 @@ const upload = multer({ storage: storage });
 routes.post(
   "/",
   authentication.authMiddleware,
-  authentication.isDesigner,
+  upload.array("photos"),
+  DesignerController.createProfile
+);
+
+routes.put(
+  "/",
+  authentication.authMiddleware,
   upload.array("photos"),
   DesignerController.editProfile
 );
@@ -54,21 +60,18 @@ routes.post(
 routes.post(
   "/signout",
   authentication.authMiddleware,
-  authentication.isDesigner,
   DesignerController.signout
 );
 
 routes.get(
   "/account",
   authentication.authMiddleware,
-  authentication.isDesigner,
   DesignerController.getAccount
 );
 
 routes.put(
   "/account",
   authentication.authMiddleware,
-  authentication.isDesigner,
   upload.single("logo"),
   DesignerController.updateAccount
 );
@@ -76,7 +79,6 @@ routes.put(
 routes.delete(
   "/account",
   authentication.authMiddleware,
-  authentication.isDesigner,
   DesignerController.deleteAccount
 );
 
@@ -85,7 +87,6 @@ routes.get("/:DesignerId/events", DesignerController.getDesignerEvents);
 routes.post(
   "/createEvent",
   authentication.authMiddleware,
-  authentication.isDesigner,
   DesignerController.createEvent
 );
 
@@ -93,7 +94,6 @@ routes.post(
 routes.put(
   "/events/:eventId",
   authentication.authMiddleware,
-  authentication.isDesigner,
   authentication.isEventOwner,
   DesignerController.updateEvent
 );
@@ -102,7 +102,7 @@ routes.put(
 routes.delete(
   "/events/:eventId",
   authentication.authMiddleware,
-  authentication.isDesigner,
+
   authentication.isEventOwner,
   DesignerController.deleteEvent
 );
@@ -117,7 +117,7 @@ routes.get(
 routes.post(
   "/notify-attending-users",
   authentication.authMiddleware,
-  authentication.isDesigner,
+
   DesignerController.notifyAttendingUsers
 );
 
@@ -125,7 +125,7 @@ routes.post(
 routes.post(
   "/:eventId/notify-event-changes",
   authentication.authMiddleware,
-  authentication.isDesigner,
+
   authentication.isEventOwner,
   DesignerController.notifyEventChanges
 );
@@ -134,7 +134,7 @@ routes.post(
 routes.get(
   "/events/filter",
   authentication.authMiddleware,
-  authentication.isDesigner,
+
   DesignerController.filterEvents
 );
 
@@ -142,7 +142,7 @@ routes.get(
 routes.get(
   "/events/search",
   authentication.authMiddleware,
-  authentication.isDesigner,
+
   DesignerController.searchEvents
 );
 

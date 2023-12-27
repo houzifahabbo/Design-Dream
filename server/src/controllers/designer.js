@@ -3,6 +3,9 @@ const DesignerModel = require("../db/models/designer");
 const OrderModel = require("../db/models/order");
 const UserModel = require("../db/models/user");
 const AccountModel = require("../db/models/account");
+const TokenModel = require("../db/models/token");
+const OptionModel = require("../db/models/option");
+const resetPasswordTemplate = require("../emailTemplates/resetPassword");
 const sendEmail = require("../utils/email");
 const welcomeTemplate = require("../emailTemplates/welcome");
 const DesignerController = {};
@@ -239,14 +242,23 @@ DesignerController.deleteAccount = async (req, res) => {
   const designerId = req.designer.id;
   try {
     // Find the designer by ID
-    const deletedDesigner = await DesignerModel.findByIdAndDelete(designerId);
+    const deletedDesigner = await DesignerModel.findByIdAndUpdate(designerId, {
+      // 14 days expiration
+      designerExpires: Date.now() + 12096e5,
+    });
     if (!deletedDesigner) {
       return res.status(404).json({ error: "designer not found" });
     }
     // Delete the designer's account
-    const deletedAccount = await AccountModel.findOneAndDelete({
-      user: designerId,
-    });
+    const deletedAccount = await AccountModel.findOneAndUpdate(
+      {
+        user: designerId,
+      },
+      {
+        // 14 days expiration
+        accountExpires: Date.now() + 12096e5,
+      }
+    );
     if (!deletedAccount) {
       return res.status(404).json({ error: "account not found" });
     }
@@ -258,11 +270,9 @@ DesignerController.deleteAccount = async (req, res) => {
   }
 };
 
-// Get oranization by id
-
-DesignerController.editProfile = async (req, res) => {
+DesignerController.createProfile = async (req, res) => {
   const designerId = req.designer.id;
-  const { options, services } = req.body;
+  const { options } = req.body;
   const photos = req.files;
 
   try {
@@ -271,52 +281,13 @@ DesignerController.editProfile = async (req, res) => {
       return res.status(404).send("Designer not found");
     }
     if (options) {
-      options.forEach((optionData) => {
-        const option = {
-          type: optionData.type,
-          label: optionData.label,
-          required: optionData.required,
-          price: optionData.optionPrice,
-          placeholder: optionData.placeholder,
-        };
-        if (optionData.type === "file") {
-          const { fileType } = optionData;
-          option.fileType = fileType;
-        } else if (
-          optionData.type === "text field" ||
-          optionData.type === "text area"
-        ) {
-          const { data, dataType } = req.body;
-          option.data = data;
-          option.dataType = dataType;
-        } else if (
-          optionData.type === "dropdown" ||
-          optionData.type === "radio button" ||
-          optionData.type === "checkbox"
-        ) {
-          const { optionList, other, otherText } = optionData;
-          option.optionList = optionList;
-          option.other = other;
-          option.otherText = otherText;
-        } else if (optionData.type === "date" || optionData.type === "time") {
-          const { min, max } = optionData;
-          option.min = min;
-          option.max = max;
-        } else if (optionData.type === "date and time") {
-          const { min, max, minTime, maxTime } = optionData;
-          option.min = min;
-          option.max = max;
-          option.minTime = minTime;
-          option.maxTime = maxTime;
-        } else if (optionData.type === "location") {
-          const { location } = optionData;
-          option.location = location;
-        }
-      });
-      designer.options = options;
-    }
-    if (services) {
-      designer.services = services;
+      for (const optionData of options) {
+        const option = await OptionModel.create({
+          ...optionData,
+          designer: designerId,
+        });
+        designer.options.push(option._id);
+      }
     }
     if (photos) {
       designer.photos = photos;
@@ -327,6 +298,111 @@ DesignerController.editProfile = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+DesignerController.editProfile = async (req, res) => {
+  const designerId = req.designer.id;
+  const { options } = req.body;
+  const photos = req.files;
+
+  try {
+    const designer = await DesignerModel.findById(designerId);
+    if (!designer) {
+      return res.status(404).send("Designer not found");
+    }
+    if (options) {
+      for (const optionData of options) {
+        const option = await OptionModel.findOneAndReplace(
+          { _id: optionData.id },
+          optionData
+        );
+        if (!option) {
+          return res.status(404).send("Option not found");
+        }
+      }
+    }
+    if (photos) {
+      designer.photos = photos;
+    }
+    await designer.save();
+    res.status(201).json(designer);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+DesignerController.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const designer = await DesignerModel.findOne({
+      email,
+    });
+    if (!designer) {
+      return res.status(404).json({
+        message: "Designer not found",
+      });
+    }
+    const token = await TokenModel.create({
+      account: designer._id,
+      model_type: "Designer",
+    });
+
+    const emailText = resetPasswordTemplate(token.token, designer.name);
+    sendEmail(email, "Reset Password", emailText);
+    res.json({
+      message: "email sent successfully",
+    });
+  } catch (err) {
+    res.status(400).json({
+      error: err.message,
+    });
+  }
+};
+
+DesignerController.resetPassword = async (req, res) => {
+  const { password, confirmPassword } = req.body;
+  try {
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        error: "passwords do not match",
+      });
+    }
+    const token = await TokenModel.findOneAndDelete({
+      token: req.query.token,
+    });
+    if (!token) {
+      return res.status(404).json({
+        message: "Token not found",
+      });
+    }
+    const account = await AccountModel.findOne({
+      user: token.account,
+    });
+    if (!account) {
+      return res.status(404).json({
+        message: "Account not found",
+      });
+    }
+    account.password_hash = password;
+    await account.save();
+    res.json({
+      message: "Password updated successfully",
+    });
+  } catch (err) {
+    res.status(400).json({
+      error: err.message,
+    });
+  }
+};
+
+
+
+
+
+
+
+
+
+
 
 DesignerController.getAttendingUsersOfOrgEvents = async (req, res) => {
   try {

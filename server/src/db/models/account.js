@@ -19,6 +19,10 @@ const accountSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  accountExpires: {
+    type: Date,
+    expires: null,
+  },
 });
 
 function validatePasswordStrength(password) {

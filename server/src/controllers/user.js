@@ -5,7 +5,6 @@ const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/email");
 const resetPasswordTemplate = require("../emailTemplates/resetPassword");
 const welcomeTemplate = require("../emailTemplates/welcome");
-
 const userController = {};
 
 const generateJWT = (user, jwtExp) => {
@@ -30,6 +29,25 @@ const checkErorrCode = (err, res) => {
   return res.status(400).json({
     error: err.message,
   });
+};
+
+userController.getUserByUsername = async (req, res) => {
+  const { username } = req.query;
+  try {
+    const profile = await UserModel.findOne({
+      username,
+    });
+    if (!profile) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+    res.json(profile);
+  } catch (err) {
+    res.status(400).json({
+      error: err.message,
+    });
+  }
 };
 
 userController.signin = async (req, res) => {
@@ -135,74 +153,6 @@ userController.signup = async (req, res) => {
   }
 };
 
-//TODO: fix this function to match the designer function
-userController.updateAccount = async (req, res) => {
-  const user = req.user;
-  const {
-    password,
-    confirmPassword,
-    phoneNumber,
-    username,
-    firstname,
-    lastname,
-  } = req.body;
-  try {
-    const updatedUser = await UserModel.findById(user.id);
-    if (!updatedUser) {
-      return res.status(404).json({
-        message: "User not found",
-      });
-    }
-    // if (password && confirmPassword) {
-    if (password !== confirmPassword) {
-      return res.status(400).json({
-        error: "passwords do not match",
-      });
-    }
-
-    // }
-    updatedUser.username = username;
-    updatedUser.firstname = firstname;
-    updatedUser.lastname = lastname;
-    updatedUser.phoneNumber = phoneNumber;
-    await updatedUser.save();
-    if (password && confirmPassword) {
-      const updatedAccount = await AccountModel.findOne({
-        user: user.id,
-      });
-      updatedAccount?.set("password_hash", password);
-      await updatedAccount?.save();
-    }
-    res.json({
-      message: "User updated successfully",
-    });
-  } catch (err) {
-    checkErorrCode(err, res);
-  }
-};
-
-userController.deleteAccount = async (req, res) => {
-  const user = req.user;
-  try {
-    const deletedUser = await UserModel.findByIdAndDelete(user.id);
-    if (!deletedUser) {
-      return res.status(422).json({
-        message: "User not found",
-      });
-    }
-    await AccountModel.findOneAndDelete({
-      user: user.id,
-    });
-    res.clearCookie("jwt");
-    // res.redirect(process.env.DOMAIN);
-    res.json({ message: "User deleted successfully" });
-  } catch (err) {
-    res.status(422).json({
-      error: err.message,
-    });
-  }
-};
-
 userController.signout = (req, res) => {
   try {
     res.clearCookie("jwt");
@@ -215,20 +165,92 @@ userController.signout = (req, res) => {
   }
 };
 
-userController.getUserByUsername = async (req, res) => {
-  const { username } = req.query;
+userController.updateAccount = async (req, res) => {
+  const user = req.user;
+  const {
+    password,
+    confirmPassword,
+    phoneNumber,
+    username,
+    firstname,
+    lastname,
+    email,
+  } = req.body;
   try {
-    const profile = await UserModel.findOne({
-      username,
-    });
-    if (!profile) {
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      user.id,
+      {
+        username,
+        firstname,
+        lastname,
+        phoneNumber,
+        email,
+      },
+      { new: true }
+    );
+    if (!updatedUser) {
       return res.status(404).json({
         message: "User not found",
       });
     }
-    res.json(profile);
+    if (password && confirmPassword) {
+      if (password !== confirmPassword) {
+        return res.status(400).json({
+          error: "passwords do not match",
+        });
+      }
+      const updatedAccount = await AccountModel.findOne({
+        user: user.id,
+      });
+      if (!updatedAccount) {
+        return res.status(404).json({
+          message: "Account not found",
+        });
+      }
+      updatedAccount.password_hash = password;
+      await updatedAccount.save();
+    }
+    res.json({
+      message: "User updated successfully",
+    });
   } catch (err) {
-    res.status(400).json({
+    if (
+      error.message ===
+      "Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long."
+    ) {
+      return res.status(400).json({ error: error.message });
+    }
+    checkErorrCode(err, res);
+  }
+};
+
+userController.deleteAccount = async (req, res) => {
+  const user = req.user;
+  try {
+    const deletedUser = await UserModel.findByIdAndUpdate(user.id, {
+      // 14 days expiration
+      userExpires: Date.now() + 12096e5,
+    });
+    if (!deletedUser) {
+      return res.status(422).json({
+        message: "User not found",
+      });
+    }
+    await AccountModel.findOneAndUpdate(
+      {
+        user: user.id,
+      },
+      {
+        // 14 days expiration
+        accountExpires: Date.now() + 12096e5,
+      }
+    );
+
+    res.clearCookie("jwt");
+    // res.redirect(process.env.DOMAIN);
+    res.json({ message: "User deleted successfully" });
+  } catch (err) {
+    res.status(422).json({
       error: err.message,
     });
   }
@@ -302,3 +324,4 @@ module.exports = userController;
 
 
 //Todo: Edit google auth and ndoemailer
+//Todo: add restore account and user

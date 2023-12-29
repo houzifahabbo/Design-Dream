@@ -11,8 +11,7 @@ const generateJWT = (user, jwtExp) => {
   return jwt.sign(
     {
       id: user.id,
-      username: user.username,
-      email: user.email,
+      role: "user",
       exp: jwtExp,
       iat: Math.floor(Date.now() / 1000), // Issued at date
     },

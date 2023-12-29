@@ -23,8 +23,7 @@ const generateJWT = (user) => {
   return jwt.sign(
     {
       id: user.id,
-      username: user.username,
-      email: user.email,
+      role: "user",
       exp: Math.floor(Date.now() / 1000) + 1209600,
       iat: Math.floor(Date.now() / 1000), // Issued at date
     },

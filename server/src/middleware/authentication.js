@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const DesignerModel = require("../db/models/designer");
 const EventModel = require("../db/models/order");
 const UserModel = require("../db/models/user");
+const user = require("../db/models/user");
 
 //TODO: CHECK IF isUser is needed or not
 const isAdminMiddleware = (req, res, next) => {
@@ -42,29 +43,39 @@ const isAuthenticated = (req, res, next) => {
   }
   next();
 };
+const authMiddleware = (role) => {
+  return async (req, res, next) => {
+    const token = req.cookies.jwt;
 
-const authMiddleware = async (req, res, next) => {
-  const token = req.cookies.jwt;
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
-  if (!token) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-  try {
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await UserModel.findById(decodedToken.id);
-    if (user) {
-      req.user = decodedToken; // Attach the user to the request object for later uses
-      return next();
+    try {
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+      if (role && decodedToken.role !== role) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+
+      let userOrDesigner;
+
+      if (role === "user") {
+        userOrDesigner = await UserModel.findById(decodedToken.id);
+      } else if (role === "designer") {
+        userOrDesigner = await DesignerModel.findById(decodedToken.id);
+      }
+
+      if (role && !userOrDesigner) {
+        return res.status(403).send("Forbidden");
+      }
+
+      req[role] = userOrDesigner;
+      next();
+    } catch (error) {
+      res.status(401).json({ error: error.message });
     }
-    const designer = await DesignerModel.findById(decodedToken.id);
-    if (designer) {
-      req.designer = decodedToken; // Attach the designer to the request object for later uses
-      return next();
-    }
-    next();
-  } catch (error) {
-    res.status(401).json({ error: error.message });
-  }
+  };
 };
 
 // The `authMiddleware` function is used to protect routes that require authentication.
@@ -128,7 +139,6 @@ const isEventOwner = async (req, res, next) => {
       res.status(403).send("Forbidden");
     }
   } catch (error) {
-    console.log(error);
     res.redirect("/");
   }
 };

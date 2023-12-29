@@ -2,17 +2,16 @@ const express = require("express");
 
 const routes = express.Router();
 const userRoutes = require("./user");
-const eventsRoutes = require("./event");
-const DesignerRoutes = require("./designer");
+const designerRoutes = require("./designer");
 const paymentRoutes = require("./payment");
 const adminRoutes = require("./admin");
 const orderRoutes = require("./order");
+const ratingRoutes = require("./rating");
 
 routes.use("/user", userRoutes);
-routes.use("/events", eventsRoutes);
-routes.use("/designer", DesignerRoutes);
+routes.use("/designer", designerRoutes);
 routes.use("/payment", paymentRoutes);
 routes.use("/admin", adminRoutes);
 routes.use("/order", orderRoutes);
-
+routes.use("/rating", ratingRoutes);
 module.exports = routes;

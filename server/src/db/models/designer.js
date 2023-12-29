@@ -44,17 +44,8 @@ const designerSchema = mongoose.Schema({
   ],
   ratings: [
     {
-      user: {
-        type: String,
-        required: true,
-      },
-      rating: {
-        type: Number,
-        required: true,
-      },
-      review: {
-        type: String,
-      },
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Rating",
     },
   ],
   links: {
@@ -70,14 +61,16 @@ const designerSchema = mongoose.Schema({
     type: Date,
     expires: null,
   },
+  averageRating: {
+    type: Number,
+    default: 0,
+  },
 });
 
-designerSchema.virtual("avgRating").get(function () {
-  let sum = 0;
-  this.ratings.forEach((rating) => {
-    sum += rating.rating;
-  });
-  return sum / this.ratings.length;
-});
+designerSchema.methods.calcAverageRating = (ratings) =>
+  (
+    ratings.reduce((acc, rating) => (acc += rating.rating), 0) / ratings.length
+  ).toFixed(1);
+
 
 module.exports = mongoose.model("Designer", designerSchema);

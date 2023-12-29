@@ -1,6 +1,4 @@
 const OrderModel = require("../db/models/order");
-const UserModel = require("../db/models/user");
-const OptionModel = require("../db/models/option");
 const DesignerModel = require("../db/models/designer");
 const orderController = {};
 

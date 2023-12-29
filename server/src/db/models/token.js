@@ -24,7 +24,7 @@ const tokenSchema = mongoose.Schema({
     ref: "model_type",
     required: true,
   },
-  token_expiry: {
+  expires: {
     type: Date,
     default: Date.now,
     expiers: 10 * 60 * 1000,

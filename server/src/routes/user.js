@@ -43,4 +43,10 @@ routes.put(
   userController.resetPassword
 );
 
+// routes.post(
+//   "/verifyEmail",
+//   authentication.isAuthenticated,
+//   userController.verifyEmail
+// );
+
 module.exports = routes;

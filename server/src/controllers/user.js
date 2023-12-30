@@ -1,17 +1,16 @@
-const UserModel = require("../db/models/user");
-const AccountModel = require("../db/models/account");
-const TokenModel = require("../db/models/token");
-const jwt = require("jsonwebtoken");
-const sendEmail = require("../utils/email");
-const resetPasswordTemplate = require("../emailTemplates/resetPassword");
-const welcomeTemplate = require("../emailTemplates/welcome");
+import UserModel from "../db/models/user.js";
+import AccountModel from "../db/models/account.js";
+import TokenModel from "../db/models/token.js";
+import jwt from "jsonwebtoken";
+import sendEmail from "../utils/email.js";
+import resetPasswordTemplate from "../emailTemplates/resetPassword.js";
+import welcomeTemplate from "../emailTemplates/welcome.js";
 const userController = {};
 
 const generateJWT = (user, jwtExp) => {
   return jwt.sign(
     {
       id: user.id,
-      role: "user",
       exp: jwtExp,
       iat: Math.floor(Date.now() / 1000), // Issued at date
     },
@@ -105,6 +104,7 @@ userController.signup = async (req, res) => {
     password,
     confirmPassword,
     phoneNumber,
+    countryCode,
     email,
   } = req.body;
   try {
@@ -121,11 +121,12 @@ userController.signup = async (req, res) => {
         error: `${email} already used`,
       });
     }
+    const phoneNumberWithCountryCode = `+${countryCode}${phoneNumber}`;
     user = await UserModel.create({
       username,
       firstname,
       lastname,
-      phoneNumber,
+      phoneNumber: phoneNumberWithCountryCode,
       email,
     });
     try {
@@ -170,19 +171,21 @@ userController.updateAccount = async (req, res) => {
     password,
     confirmPassword,
     phoneNumber,
+    countryCode,
     username,
     firstname,
     lastname,
     email,
   } = req.body;
   try {
+    const phoneNumberWithCountryCode = `+${countryCode}${phoneNumber}`;
     const updatedUser = await UserModel.findByIdAndUpdate(
       user.id,
       {
         username,
         firstname,
         lastname,
-        phoneNumber,
+        phoneNumber: phoneNumberWithCountryCode,
         email,
       },
       { new: true }
@@ -319,8 +322,4 @@ userController.resetPassword = async (req, res) => {
   }
 };
 
-module.exports = userController;
-
-
-//Todo: Edit google auth and ndoemailer
-//Todo: add restore account and user
+export default userController;

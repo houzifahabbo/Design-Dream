@@ -1,4 +1,5 @@
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
 const resetPasswordTemplate = (
   token,
@@ -308,4 +309,4 @@ const resetPasswordTemplate = (
     
     </body></html>`;
 
-module.exports = resetPasswordTemplate;
+export default resetPasswordTemplate;

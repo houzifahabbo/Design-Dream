@@ -1,7 +1,7 @@
-const express = require("express");
+import express from "express";
 const routes = express.Router();
-const authentication = require("../middleware/authentication");
-const RatingController = require("../controllers/rating");
+import authentication from "../middleware/authentication.js";
+import RatingController from "../controllers/rating.js";
 
 routes.get("/:DesignerId", RatingController.getRatings);
 
@@ -27,20 +27,20 @@ routes.delete(
 
 routes.post(
   "/reply/:ratingId",
-  authentication.authMiddleware,
+  authentication.authMiddleware("designer"),
   RatingController.addReply
 );
 
 routes.delete(
   "/reply/:ratingId",
-  authentication.authMiddleware,
+  authentication.authMiddleware("designer"),
   RatingController.deleteReply
 );
 
 routes.put(
   "/reply/:ratingId",
-  authentication.authMiddleware,
+  authentication.authMiddleware("designer"),
   RatingController.editReply
 );
 
-module.exports = routes;
+export default routes;

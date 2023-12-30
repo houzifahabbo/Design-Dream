@@ -1,14 +1,15 @@
-const request = require("supertest");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const app = require("../../app");
-const UserModel = require("../../db/models/user");
-const AccountModel = require("../../db/models/account");
-const sendEmail = require("../../utils/email");
-const mongoose = require("../../db/connection");
-const userController = require("../user");
-const { db } = require("../../db/models/payment");
-require("dotenv").config();
+import request from "supertest";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import app from "../../app.js";
+import UserModel from "../../db/models/user.js";
+import AccountModel from "../../db/models/account.js";
+import sendEmail from "../../utils/email.js";
+import mongoose from "../../db/connection.js";
+import userController from "../user.js";
+import { db } from "../../db/models/payment.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 // Mocking mail sender
 jest.mock("../../utils/email");

@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
+import { phone } from "phone";
 
-//Todo: Add validation for email and phone number
 const designerSchema = mongoose.Schema({
   name: {
     type: String,
@@ -72,5 +72,33 @@ designerSchema.methods.calcAverageRating = (ratings) =>
     ratings.reduce((acc, rating) => (acc += rating.rating), 0) / ratings.length
   ).toFixed(1);
 
+// Email validation function
+function validateEmail(email) {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email);
+}
 
-module.exports = mongoose.model("Designer", designerSchema);
+function validatePhone(phoneNum) {
+  const result = phone(phoneNum, { validateMobilePrefix: false });
+  if (result.isValid) {
+    return true;
+  }
+  return false;
+}
+
+// Middleware to validate email and phone number before saving
+designerSchema.pre("save", async function (next) {
+  if (this.isModified("email") || this.isNew) {
+    if (!validateEmail(this.email)) {
+      return next(new Error("Invalid email format."));
+    }
+  }
+  if (this.isModified("phoneNumber") || this.isNew) {
+    if (!validatePhone(this.phoneNumber)) {
+      return next(new Error("Invalid phoneNumber format."));
+    }
+  }
+  next();
+});
+
+export default mongoose.model("Designer", designerSchema);

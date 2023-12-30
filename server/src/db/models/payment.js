@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const paymentSchema = new mongoose.Schema({
   sessionID: { type: String, required: true, select: false, unique: true },
@@ -33,4 +33,4 @@ paymentSchema.pre("save", function (next) {
   next();
 });
 
-module.exports = mongoose.model("payment", paymentSchema);
+export default mongoose.model("Payment", paymentSchema);

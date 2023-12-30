@@ -1,5 +1,6 @@
-const DesignerModel = require("../db/models/designer");
-const RatingModel = require("../db/models/rating");
+import DesignerModel from "../db/models/designer.js";
+import RatingModel from "../db/models/rating.js";
+import userModel from "../db/models/user.js";
 const ratingController = {};
 
 // Add a rating for an designer
@@ -16,6 +17,35 @@ ratingController.addRating = async (req, res) => {
     ) {
       return res.status(400).json({
         error: "Invalid rating value. Please provide a number between 1 and 5.",
+      });
+    }
+    const userObj = await userModel
+      .findById(user._id)
+      .populate("orders")
+      .select("orders");
+    const ratingExists = await RatingModel.findOne({
+      user: user._id,
+      designer: DesignerId,
+    });
+    if (ratingExists) {
+      return res.status(400).json({
+        error: "You have already rated this designer",
+      });
+    }
+
+    const order = userObj.orders.find(
+      (order) => order.designer.toString() === DesignerId.toString()
+    );
+    if (!order) {
+      return res.status(400).json({
+        error: "You have not ordered from this designer",
+      });
+    }
+
+    const orderNotCompleted = order.status !== "completed";
+    if (orderNotCompleted) {
+      return res.status(400).json({
+        error: "You have not completed your order with this designer",
       });
     }
     const ratingObj = await RatingModel.create({
@@ -70,10 +100,14 @@ ratingController.getRating = async (req, res) => {
 };
 
 ratingController.deleteRating = async (req, res) => {
+  const { ratingId } = req.params;
+  const user = req.user;
   try {
-    const { ratingId } = req.params;
     // Find the designer by ID
-    const rating = await RatingModel.findByIdAndDelete(ratingId);
+    const rating = await RatingModel.findOneAndDelete({
+      _id: ratingId,
+      user: user._id,
+    });
     if (!rating) {
       return res.status(404).json({ error: "rating not found" });
     }
@@ -84,18 +118,20 @@ ratingController.deleteRating = async (req, res) => {
 };
 
 ratingController.updateRating = async (req, res) => {
+  const { ratingId } = req.params;
+  const { rating, review } = req.body;
+  const user = req.user;
   try {
-    const { ratingId } = req.params;
-    const { rating, review } = req.body;
     // Find the designer by ID
-    const ratingObj = await RatingModel.findByIdAndUpdate(
-      ratingId,
+    const ratingObj = await RatingModel.findOneAndUpdate(
+      { _id: ratingId, user: user._id },
       {
         rating,
         text: review,
       },
       { new: true }
     );
+
     if (!ratingObj) {
       return res.status(404).json({ error: "rating not found" });
     }
@@ -108,8 +144,12 @@ ratingController.updateRating = async (req, res) => {
 ratingController.addReply = async (req, res) => {
   const ratingId = req.params.ratingId;
   const { reply } = req.body;
+  const designer = req.designer;
   try {
-    const rating = await RatingModel.findById(ratingId);
+    const rating = await RatingModel.findOne({
+      _id: ratingId,
+      designer: designer._id,
+    });
     if (!rating) {
       return res.status(404).json({ error: "rating not found" });
     }
@@ -128,8 +168,12 @@ ratingController.addReply = async (req, res) => {
 ratingController.deleteReply = async (req, res) => {
   const ratingId = req.params.ratingId;
   const replyId = req.params.replyId;
+  const designer = req.designer;
   try {
-    const rating = await RatingModel.findById(ratingId);
+    const rating = await RatingModel.findOne({
+      _id: ratingId,
+      designer: designer._id,
+    });
     if (!rating) {
       return res.status(404).json({ error: "rating not found" });
     }
@@ -149,8 +193,13 @@ ratingController.editReply = async (req, res) => {
   const ratingId = req.params.ratingId;
   const replyId = req.params.replyId;
   const { reply } = req.body;
+  const designer = req.designer;
   try {
-    const rating = await RatingModel.findById(ratingId);
+    const rating = await RatingModel.findOne({
+      _id: ratingId,
+      designer: designer._id,
+    });
+
     if (!rating) {
       return res.status(404).json({ error: "rating not found" });
     }
@@ -166,4 +215,4 @@ ratingController.editReply = async (req, res) => {
   }
 };
 
-module.exports = ratingController;
+export default ratingController;

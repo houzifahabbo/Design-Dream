@@ -1,12 +1,17 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
-const apiRoutes = require("./routes/index");
-require("./db/connection");
-require("dotenv").config();
-const path = require("path");
+import dotenv from "dotenv";
+import express from "express";
+import cookieParser from "cookie-parser";
+import bodyParser from "body-parser";
+import path from "path";
+import apiRoutes from "./routes/index.js";
+import "./db/connection.js";
+import startAdminJS from "./adminApp.js";
+
 const port = process.env.NODE_LOCAL_PORT || 5000;
 const app = express();
+const filename = new URL(import.meta.url).pathname;
+const dirname = path.dirname(filename);
+dotenv.config();
 
 const middleware = [
   cookieParser(),
@@ -14,7 +19,7 @@ const middleware = [
     extended: false,
   }),
   express.json(),
-  express.static(path.join(__dirname, "../../client")),
+  express.static(path.join(dirname, "../../client")),
 ];
 
 middleware.forEach((item) => {
@@ -33,8 +38,6 @@ if (process.env.NODE_ENV !== "test") {
   });
 }
 
+startAdminJS();
 
-module.exports = app;
-
-
-  //Todo: edit package.json, remove the comments and remove unnecessary dependencies
+export default app;

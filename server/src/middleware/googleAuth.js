@@ -1,4 +1,4 @@
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
 
 const googleCallbackMiddleware = async (req, res) => {
   try {
@@ -6,16 +6,11 @@ const googleCallbackMiddleware = async (req, res) => {
       throw new Error("Failed to authenticate user");
     }
     const { user } = req;
-    const currentTime = Math.floor(Date.now() / 1000);
-    const expirationTime = currentTime + 14 * 24 * 60 * 60; // 14 days expiration
 
     const payload = {
-      firstName: user.name,
-      email: user.email,
-      avatar: user.profilePicture,
-      googleId: user.providerId,
-      exp: expirationTime,
-      iat: currentTime,
+      id: user.id,
+      exp: Math.floor(Date.now() / 1000) + 1209600, //
+      iat: Math.floor(Date.now() / 1000),
     };
 
     const jwtToken = jwt.sign(payload, process.env.JWT_SECRET);
@@ -31,4 +26,4 @@ const googleCallbackMiddleware = async (req, res) => {
   }
 };
 
-module.exports = googleCallbackMiddleware;
+export default googleCallbackMiddleware;

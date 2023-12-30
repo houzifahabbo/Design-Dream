@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const rand = function () {
   return Math.random().toString(36).substr(2); // remove `0.`
@@ -31,4 +31,4 @@ const tokenSchema = mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Token", tokenSchema);
+export default mongoose.model("Token", tokenSchema);

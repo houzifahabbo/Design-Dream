@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const optionSchema = mongoose.Schema(
   {
@@ -124,4 +124,4 @@ optionSchema.discriminator(
   })
 );
 
-module.exports = mongoose.model("Option", optionSchema);
+export default mongoose.model("Option", optionSchema);

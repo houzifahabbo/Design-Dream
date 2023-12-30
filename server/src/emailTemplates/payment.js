@@ -275,4 +275,4 @@ table, td { color: #000000; } </style>
 
 </body></html>`;
 
-module.exports = paymentTemplate;
+export default paymentTemplate;

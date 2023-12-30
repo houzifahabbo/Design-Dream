@@ -1,19 +1,17 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
-//TODO: add model_type to figma
-//TODO: change the name of user filed
 const accountSchema = mongoose.Schema({
+  model_type: {
+    type: String,
+    enum: ["User", "Designer", "Admin"],
+    required: true,
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "model_type",
     required: true,
     unique: true,
-  },
-  model_type: {
-    type: String,
-    enum: ["User", "Designer"],
-    required: true,
   },
   password_hash: {
     type: String,
@@ -51,4 +49,4 @@ accountSchema.methods.comparePassword = function (password) {
   return bcrypt.compare(password, this.password_hash);
 };
 
-module.exports = mongoose.model("Account", accountSchema);
+export default mongoose.model("Account", accountSchema);

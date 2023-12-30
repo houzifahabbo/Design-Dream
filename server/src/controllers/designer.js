@@ -1,18 +1,17 @@
-const jwt = require("jsonwebtoken");
-const DesignerModel = require("../db/models/designer");
-const AccountModel = require("../db/models/account");
-const TokenModel = require("../db/models/token");
-const OptionModel = require("../db/models/option");
-const resetPasswordTemplate = require("../emailTemplates/resetPassword");
-const sendEmail = require("../utils/email");
-const welcomeTemplate = require("../emailTemplates/welcome");
+import jwt from "jsonwebtoken";
+import DesignerModel from "../db/models/designer.js";
+import AccountModel from "../db/models/account.js";
+import TokenModel from "../db/models/token.js";
+import OptionModel from "../db/models/option.js";
+import resetPasswordTemplate from "../emailTemplates/resetPassword.js";
+import sendEmail from "../utils/email.js";
+import welcomeTemplate from "../emailTemplates/welcome.js";
 const DesignerController = {};
 
 const generateJWT = (designer, jwtExp) =>
   jwt.sign(
     {
       id: designer.id,
-      role: "designer",
       exp: jwtExp,
       iat: Math.floor(Date.now() / 1000), // Issued at date
     },
@@ -38,7 +37,6 @@ DesignerController.getDesigners = async (req, res) => {
     if (!designers) {
       return res.status(404).json({ message: "designers not found" });
     }
-
     res.json(designers);
   } catch (error) {
     res.status(500).json({
@@ -68,8 +66,15 @@ DesignerController.getDesignerByName = async (req, res) => {
 
 DesignerController.signup = async (req, res) => {
   const jwtExp = Math.floor(Date.now() / 1000) + 86400; // 1 day expiration
-  const { name, email, password, confirmPassword, description, phoneNumber } =
-    req.body;
+  const {
+    name,
+    email,
+    password,
+    confirmPassword,
+    description,
+    phoneNumber,
+    countryCode,
+  } = req.body;
   const { buffer, mimetype } = req.file;
   try {
     if (password !== confirmPassword) {
@@ -79,12 +84,13 @@ DesignerController.signup = async (req, res) => {
     if (designer) {
       return res.status(400).json({ error: `${email} is already used` });
     }
+    const phoneNumberWithCountryCode = `+${countryCode}${phoneNumber}`;
     designer = await DesignerModel.create({
       name,
       email,
       password,
       description,
-      phoneNumber,
+      phoneNumber: phoneNumberWithCountryCode,
       logo: {
         imageData: buffer,
         contentType: mimetype,
@@ -171,11 +177,18 @@ DesignerController.getAccount = async (req, res) => {
 
 DesignerController.updateAccount = async (req, res) => {
   try {
-    const { name, email, password, confirmPassword, description, phoneNumber } =
-      req.body;
+    const {
+      name,
+      email,
+      password,
+      confirmPassword,
+      description,
+      phoneNumber,
+      countryCode,
+    } = req.body;
     const { buffer, mimetype } = req.file;
     const designerId = req.designer.id;
-
+    const phoneNumberWithCountryCode = `+${countryCode}${phoneNumber}`;
     const updatedDesigner = await DesignerModel.findByIdAndUpdate(
       designerId,
       {
@@ -183,7 +196,7 @@ DesignerController.updateAccount = async (req, res) => {
         email,
         password,
         description,
-        phoneNumber,
+        phoneNumber: phoneNumberWithCountryCode,
         logo: {
           imageData: buffer,
           contentType: mimetype,
@@ -378,4 +391,4 @@ DesignerController.resetPassword = async (req, res) => {
   }
 };
 
-module.exports = DesignerController;
+export default DesignerController;

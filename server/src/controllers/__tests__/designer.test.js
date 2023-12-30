@@ -1,9 +1,9 @@
-const request = require("supertest");
-const app = require("../../app");
-const mongoose = require("../../db/connection");
-const DesignerModel = require("../../db/models/designer");
-const AccountModel = require("../../db/models/account");
-const jwt = require("jsonwebtoken");
+import request from "supertest";
+import app from "../../app.js";
+import mongoose from "../../db/connection.js";
+import DesignerModel from "../../db/models/designer.js";
+import AccountModel from "../../db/models/account.js";
+import jwt from "jsonwebtoken";
 
 const designer = {
   id: "5f8f8c8f3d1d9d2d9c0d3d3d",

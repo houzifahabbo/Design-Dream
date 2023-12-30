@@ -1,8 +1,8 @@
-const express = require("express");
+import express from "express";
 
 const routes = express.Router();
-const paymentController = require("../controllers/payment");
-const authentication = require("../middleware/authentication");
+import paymentController from "../controllers/payment.js";
+import authentication from "../middleware/authentication.js";
 
 routes.get(
   "/success",
@@ -22,4 +22,4 @@ routes.get(
   paymentController.getpaymentById
 );
 
-module.exports = routes;
+export default routes;

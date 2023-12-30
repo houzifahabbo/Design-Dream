@@ -1,8 +1,8 @@
-const express = require("express");
+import express from "express";
 const routes = express.Router();
-const multer = require("multer");
-const DesignerController = require("../controllers/designer");
-const authentication = require("../middleware/authentication");
+import multer from "multer";
+import DesignerController from "../controllers/designer.js";
+import authentication from "../middleware/authentication.js";
 
 const storage = multer.memoryStorage(
   { limits: { files: 10, fileSize: 16 * 1024 * 1024 } },
@@ -18,24 +18,16 @@ const storage = multer.memoryStorage(
 );
 const upload = multer({ storage: storage });
 
-// routes.post(
-//   "/test",
-//   authentication.authMiddleware,
-//   
-//   upload.array("photos"),
-//   DesignerController.test
-// );
-
 routes.post(
   "/",
-  authentication.authMiddleware,
+  authentication.authMiddleware("designer"),
   upload.array("photos"),
   DesignerController.createProfile
 );
 
 routes.put(
   "/",
-  authentication.authMiddleware,
+  authentication.authMiddleware("designer"),
   upload.array("photos"),
   DesignerController.editProfile
 );
@@ -59,27 +51,27 @@ routes.post(
 
 routes.post(
   "/signout",
-  authentication.authMiddleware,
+  authentication.authMiddleware("designer"),
   DesignerController.signout
 );
 
 routes.get(
   "/account",
-  authentication.authMiddleware,
+  authentication.authMiddleware("designer"),
   DesignerController.getAccount
 );
 
 routes.put(
   "/account",
-  authentication.authMiddleware,
+  authentication.authMiddleware("designer"),
   upload.single("logo"),
   DesignerController.updateAccount
 );
 
 routes.delete(
   "/account",
-  authentication.authMiddleware,
+  authentication.authMiddleware("designer"),
   DesignerController.deleteAccount
 );
 
-module.exports = routes;
+export default routes;

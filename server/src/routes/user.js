@@ -1,9 +1,9 @@
-const express = require("express");
+import express from "express";
 const routes = express.Router();
-const userController = require("../controllers/user");
-const authentication = require("../middleware/authentication");
-const passport = require("../utils/googleAuth");
-const googleCallbackMiddleware = require("../middleware/googleAuth");
+import userController from "../controllers/user.js";
+import authentication from "../middleware/authentication.js";
+import passport from "../utils/googleAuth.js";
+import googleCallbackMiddleware from "../middleware/googleAuth.js";
 
 routes.post("/signin", authentication.isAuthenticated, userController.signin);
 routes.post("/signup", authentication.isAuthenticated, userController.signup);
@@ -14,12 +14,11 @@ routes.get(
       "openid",
       "email",
       "profile",
-      "https://www.googleapis.com/auth/user.birthday.read",
       "https://www.googleapis.com/auth/user.phonenumbers.read",
-      "https://www.googleapis.com/auth/user.gender.read",
     ],
   })
 );
+
 routes.get(
   "/google/callback",
   passport.authenticate("google", {
@@ -27,10 +26,22 @@ routes.get(
   }),
   googleCallbackMiddleware
 );
-// Get user by ID
-routes.put("/", authentication.authMiddleware, userController.updateAccount);
-routes.delete("/", authentication.authMiddleware, userController.deleteAccount);
-routes.post("/signout", authentication.authMiddleware, userController.signout);
+
+routes.put(
+  "/",
+  authentication.authMiddleware("user"),
+  userController.updateAccount
+);
+routes.delete(
+  "/",
+  authentication.authMiddleware("user"),
+  userController.deleteAccount
+);
+routes.post(
+  "/signout",
+  authentication.authMiddleware("user"),
+  userController.signout
+);
 routes.get("/", userController.getUserByUsername);
 routes.post(
   "/forgotPassword",
@@ -49,4 +60,4 @@ routes.put(
 //   userController.verifyEmail
 // );
 
-module.exports = routes;
+export default routes;

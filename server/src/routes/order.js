@@ -1,26 +1,34 @@
-const express = require("express");
+import express from "express";
 const routes = express.Router();
-const orderController = require("../controllers/order");
-const authentication = require("../middleware/authentication");
+import orderController from "../controllers/order.js";
+import authentication from "../middleware/authentication.js";
 
 // Get all orders
-routes.get("/", authentication.authMiddleware, orderController.getOrders);
+routes.get(
+  "/",
+  authentication.authMiddleware("userOrDesigner"),
+  orderController.getOrders
+);
 
 // Create an order (authentication required)
 routes.post(
   "/",
-  authentication.authMiddleware,
-  authentication.isUser,
+  authentication.authMiddleware("user"),
   orderController.createOrder
 );
 
 // Get order by ID
-routes.get("/:id", orderController.getOrderById);
+routes.get(
+  "/:id",
+  authentication.authMiddleware("userOrDesigner"),
+  orderController.getOrderById
+);
 
 // Update order by ID
-routes.put("/:id", orderController.updateOrder);
+routes.put(
+  "/:id",
+  authentication.authMiddleware("userOrDesigner"),
+  orderController.updateOrder
+);
 
-// Delete order by ID
-routes.delete("/:id", orderController.deleteOrder);
-
-module.exports = routes;
+export default routes;

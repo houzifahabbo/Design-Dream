@@ -1,10 +1,7 @@
-const jwt = require("jsonwebtoken");
-const DesignerModel = require("../db/models/designer");
-const EventModel = require("../db/models/order");
-const UserModel = require("../db/models/user");
-const user = require("../db/models/user");
+import jwt from "jsonwebtoken";
+import DesignerModel from "../db/models/designer.js";
+import UserModel from "../db/models/user.js";
 
-//TODO: CHECK IF isUser is needed or not
 const isAdminMiddleware = (req, res, next) => {
   const token = req.cookies.jwt;
   if (token) {
@@ -43,6 +40,7 @@ const isAuthenticated = (req, res, next) => {
   }
   next();
 };
+
 const authMiddleware = (role) => {
   return async (req, res, next) => {
     const token = req.cookies.jwt;
@@ -54,16 +52,19 @@ const authMiddleware = (role) => {
     try {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
 
-      if (role && decodedToken.role !== role) {
-        return res.status(403).json({ error: "Forbidden" });
-      }
-
       let userOrDesigner;
 
       if (role === "user") {
         userOrDesigner = await UserModel.findById(decodedToken.id);
       } else if (role === "designer") {
         userOrDesigner = await DesignerModel.findById(decodedToken.id);
+      } else if (role === "userOrDesigner") {
+        userOrDesigner = await UserModel.findById(decodedToken.id);
+        role = "user";
+        if (!userOrDesigner) {
+          userOrDesigner = await DesignerModel.findById(decodedToken.id);
+          role = "designer";
+        }
       }
 
       if (role && !userOrDesigner) {
@@ -78,84 +79,4 @@ const authMiddleware = (role) => {
   };
 };
 
-// The `authMiddleware` function is used to protect routes that require authentication.
-// By using this middleware, you can ensure that only authorized users can access these routes.
-
-// IMPORTANT!!
-// The `authMiddleware` function is assigning req.user to the user object.
-// IMPORTANT!!
-
-const isDesigner = async (req, res, next) => {
-  const { user } = req;
-  try {
-    const designer = await DesignerModel.findById(user.id);
-    if (!designer) {
-      return res.status(403).send("Forbidden");
-    }
-    req.designer = designer;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: error.message });
-  }
-};
-
-const isUser = async (req, res, next) => {
-  try {
-    const user = await UserModel.findById(req.user.id);
-    if (!user) {
-      return res.status(403).send("Forbidden");
-    }
-    req.user = user;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: error.message });
-  }
-};
-
-// isDesigner is a middleware function that checks if the user is an designer.
-// this function should be used after the authMiddleware function.
-// means that the user is already authenticated but checks if it's an designer.
-
-// IMPORTANT!!
-// The `isDesigner` function is assigning req.designer to the designer object.
-// IMPORTANT!!
-
-// now we have access to the designer object after verifying the designer
-// and user now we can check its the owner of the event
-const isEventOwner = async (req, res, next) => {
-  const { designer } = req;
-  const { eventId } = req.params;
-  try {
-    const event = await EventModel.findById(eventId);
-    if (!event) {
-      res.status(403).send("couldnt find event");
-    }
-    if (event && event.organizer.equals(designer.id)) {
-      // designer is the owner of the event
-      req.eventId = eventId;
-      next();
-    } else {
-      // designer is not the owner of the event
-      res.status(403).send("Forbidden");
-    }
-  } catch (error) {
-    res.redirect("/");
-  }
-};
-
-// isEventOwner is a middleware function that checks if the designer is the owner of the event. :)
-// this function should be used after the authMiddleware and isDesigner functions.
-// means that the user is already authenticated and is an designer but checks if it's the owner of the event.
-
-// IMPORTANT!!
-// The `isEventOwner` function is assigning req.eventId to the eventId.
-// IMPORTANT!!
-
-module.exports = {
-  isAdminMiddleware,
-  authMiddleware,
-  isDesigner,
-  isEventOwner,
-  isAuthenticated,
-  isUser,
-};
+export default { isAdminMiddleware, isAuthenticated, authMiddleware };

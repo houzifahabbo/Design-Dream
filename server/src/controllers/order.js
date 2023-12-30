@@ -1,5 +1,5 @@
-const OrderModel = require("../db/models/order");
-const DesignerModel = require("../db/models/designer");
+import OrderModel from "../db/models/order.js";
+import DesignerModel from "../db/models/designer.js";
 const orderController = {};
 
 orderController.getOrders = async (req, res) => {
@@ -47,9 +47,19 @@ orderController.createOrder = async (req, res) => {
 };
 
 orderController.getOrderById = async (req, res) => {
+  const orderId = req.params.id;
+  const designer = req.designer;
+  const user = req.user;
   try {
-    const orderId = req.params.id;
-    const order = await OrderModel.findById(orderId).populate("user");
+    const order = designer
+      ? await OrderModel.findOne({
+          _id: orderId,
+          designer: designer.id,
+        })
+      : await OrderModel.findOne({
+          _id: orderId,
+          customer: user.id,
+        });
     if (!order) {
       return res.status(404).json({ error: "Order not found" });
     }
@@ -62,35 +72,35 @@ orderController.getOrderById = async (req, res) => {
 orderController.updateOrder = async (req, res) => {
   const { status } = req.body;
   const orderId = req.params.id;
+  const designer = req.designer;
+  const user = req.user;
   try {
-    const order = await OrderModel.findByIdAndUpdate(
-      orderId,
-      { status },
-      { new: true }
-    );
-    if (!order) {
-      return res.status(404).json({ error: "Order not found" });
+    if (user && status === "Canceled") {
+      const order = await OrderModel.findOneAndUpdate(
+        { _id: orderId, customer: user.id },
+        { status },
+        { new: true }
+      );
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+      res.json({ message: "Order updated successfully", order });
+    } else if (designer) {
+      const order = await OrderModel.findOneAndUpdate(
+        { _id: orderId, designer: designer.id },
+        { status },
+        { new: true }
+      );
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+      res.json({ message: "Order updated successfully", order });
+    } else {
+      return res.status(403).send("Forbidden");
     }
-    res.json({ message: "Order updated successfully", order });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-orderController.deleteOrder = async (req, res) => {
-  try {
-    const orderId = req.params.id;
-    const order = await OrderModel.findById(orderId);
-    if (!order) {
-      return res.status(404).json({ error: "Order not found" });
-    }
-    // delete order after 14 days
-    order.orderExpires = Date.now() + 12096e5;
-    await order.save();
-    res.json({ message: "Order deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-module.exports = orderController;
+export default orderController;

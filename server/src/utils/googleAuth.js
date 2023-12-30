@@ -1,10 +1,11 @@
-const passport = require("passport");
-const jwt = require("jsonwebtoken");
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const UserModel = require("../db/models/user");
-const sendEmail = require("./email");
-const welcomeTemplate = require("../emailTemplates/welcome");
-require("dotenv").config();
+import passport from "passport";
+import jwt from "jsonwebtoken";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import UserModel from "../db/models/user.js";
+import sendEmail from "./email.js";
+import welcomeTemplate from "../emailTemplates/welcome.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 passport.serializeUser((user, done) => {
   done(null, user._id);
@@ -23,7 +24,6 @@ const generateJWT = (user) => {
   return jwt.sign(
     {
       id: user.id,
-      role: "user",
       exp: Math.floor(Date.now() / 1000) + 1209600,
       iat: Math.floor(Date.now() / 1000), // Issued at date
     },
@@ -50,25 +50,12 @@ const dataRequest = async (accessToken, personFields) => {
   }
 };
 
-const getbirthDay = async (accessToken) => {
-  const data = await dataRequest(accessToken, "birthdays");
-  const dateObject = data.birthdays[0]?.date;
-  const formattedDate = `${dateObject.year}-${dateObject.month
-    .toString()
-    .padStart(2, "0")}-${dateObject.day.toString().padStart(2, "0")}`;
-  return formattedDate;
-};
-
 const getPhoneNumber = async (accessToken) => {
   const data = await dataRequest(accessToken, "phoneNumbers");
-  const phoneNumberValue = data.phoneNumbers?.canonicalForm;
-  return phoneNumberValue;
-};
-
-const getGender = async (accessToken) => {
-  const data = await dataRequest(accessToken, "genders");
-  const genderObject = data.genders[0]?.value;
-  return genderObject;
+  if (data.phoneNumbers) {
+    return data.phoneNumbers.length ? data.phoneNumbers[0].canonicalForm : null;
+  }
+  return null;
 };
 
 passport.use(
@@ -87,24 +74,16 @@ passport.use(
           const token = await generateJWT(existingUser);
           return done(null, { user: existingUser, token });
         }
-        const birthday = await getbirthDay(accessToken);
         const phoneNumber = await getPhoneNumber(accessToken);
-        const gender = await getGender(accessToken);
-        if (phoneNumber === 0) {
-          phoneNumber = null;
-        }
 
         // User doesn't exist, create a new user and save to the database
         const newUser = new UserModel({
           username: profile.displayName, // You may adjust this based on your data model
           email: profile.emails[0].value, // Make sure to check if profile.emails is not empty before accessing index 0
           googleId: profile.id,
-          avatar: profile.photos[0]?.value || null, // Make sure to check if profile.photos is not empty before accessing index 0
           firstname: profile._json.given_name,
           lastname: profile._json.family_name,
           phoneNumber: phoneNumber,
-          gender: gender || null,
-          birthday: birthday || null,
         });
         await newUser.save();
 
@@ -113,11 +92,11 @@ passport.use(
         sendEmail(newUser.email, "Welcome onboard", emailText);
         return done(null, { user: newUser, token });
       } catch (error) {
-        console.error("Error with Google OAuth:", error);
+        console.error(error);
         return done(error, null);
       }
     }
   )
 );
 
-module.exports = passport;
+export default passport;

@@ -1,9 +1,11 @@
-require("dotenv").config();
-const stripe = require("stripe")(process.env.STRIPE_KEY);
-const jwt = require("jsonwebtoken");
-const paymentModel = require("../db/models/payment");
-const sendEmail = require("../utils/email");
-const paymentTemplate = require("../emailTemplates/payment");
+import dotenv from "dotenv";
+dotenv.config();
+import stripe from "stripe";
+const stripeInstance = stripe(process.env.STRIPE_KEY);
+import jwt from "jsonwebtoken";
+import paymentModel from "../db/models/payment.js";
+import sendEmail from "../utils/email.js";
+import paymentTemplate from "../emailTemplates/payment.js";
 
 const paymentController = {};
 
@@ -132,4 +134,5 @@ paymentController.getpaymentById = async (req, res) => {
     });
   }
 };
-module.exports = paymentController;
+
+export default paymentController;

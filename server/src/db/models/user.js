@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-//Todo: Add validation for email and phone number
+import mongoose from "mongoose";
+import { phone } from "phone";
 
 const userSchema = mongoose.Schema({
   username: {
@@ -42,10 +42,6 @@ const userSchema = mongoose.Schema({
     type: Date,
     expires: null,
   },
-  // isAdmin: {
-  //   type: Boolean,
-  //   default: false,
-  // },
 });
 
 userSchema.virtual("fullname").get(function () {
@@ -60,15 +56,30 @@ userSchema.virtual("fullname").get(function () {
 
 // Email validation function
 function validateEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   return emailRegex.test(email);
 }
 
-// Middleware to validate email and age before saving
+function validatePhone(phoneNum) {
+  const result = phone(phoneNum);
+  if (result.isValid) {
+    return true;
+  }
+  return false;
+}
+
+// Middleware to validate email and phone number before saving
 userSchema.pre("save", async function (next) {
   if (this.isModified("email") || this.isNew) {
     if (!validateEmail(this.email)) {
       return next(new Error("Invalid email format."));
+    }
+  }
+  if (this.isModified("phoneNumber") || this.isNew) {
+    if (!this.phoneNumber) {
+      return next();
+    } else if (!validatePhone(this.phoneNumber)) {
+      return next(new Error("Invalid phoneNumber format."));
     }
   }
   next();
@@ -88,4 +99,4 @@ userSchema.set("toJSON", {
   virtuals: true,
 });
 
-module.exports = mongoose.model("User", userSchema);
+export default mongoose.model("User", userSchema);

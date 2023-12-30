@@ -8,7 +8,6 @@ import OptionModel from "./db/models/option.js";
 import UserModel from "./db/models/user.js";
 import DesignerModel from "./db/models/designer.js";
 import RatingModel from "./db/models/rating.js";
-import PaymentModel from "./db/models/payment.js";
 import accountModel from "./db/models/account.js";
 import tokenModel from "./db/models/token.js";
 import adminModel from "./db/models/admin.js";
@@ -28,7 +27,6 @@ const startAdminJS = async () => {
     UserModel,
     DesignerModel,
     RatingModel,
-    PaymentModel,
     accountModel,
     tokenModel,
     adminModel,

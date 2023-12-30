@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { phone } from "phone";
+import axios from "axios";
 
 const designerSchema = mongoose.Schema({
   name: {
@@ -68,6 +69,11 @@ const designerSchema = mongoose.Schema({
   verified: {
     type: Boolean,
     default: false,
+  },
+  stripeAccount: {
+    type: String,
+    unique: true,
+    sparse: true,
   },
 });
 

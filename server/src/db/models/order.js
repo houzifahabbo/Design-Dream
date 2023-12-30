@@ -7,8 +7,14 @@ const orderSchema = mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["Completed", "Canceled", "In Progress", "Received"],
-    default: "Received",
+    enum: [
+      "Completed",
+      "Canceled",
+      "In Progress",
+      "Received",
+      "Awaiting Payment",
+    ],
+    default: "Awaiting Payment",
   },
   designer: {
     type: mongoose.Schema.Types.ObjectId,
@@ -23,8 +29,20 @@ const orderSchema = mongoose.Schema({
     },
   ],
   paymentData: {
-    type: String,
-    required: true,
+    sessionID: {
+      type: String,
+      required: true,
+      select: false,
+      unique: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+    date: {
+      type: Date,
+      required: true,
+    },
   },
   orderDate: {
     type: Date,
@@ -49,6 +67,16 @@ const rand = function () {
 };
 
 orderSchema.pre("save", async function (next) {
+  if (!this.isModified("paymentData.date") || this.isNew) {
+    const dateObject = new Date(this.date * 1000);
+    const day = String(dateObject.getDate()).padStart(2, "0");
+    const month = String(dateObject.getMonth() + 1).padStart(2, "0");
+    const year = dateObject.getFullYear();
+    this.date = `${day}/${month}/${year}`;
+  }
+  if (!this.isModified("paymentData.amount") || this.isNew) {
+    this.amount /= 100;
+  }
   if (this.isNew) {
     this.number = rand();
     while (await this.constructor.findOne({ number: this.number })) {

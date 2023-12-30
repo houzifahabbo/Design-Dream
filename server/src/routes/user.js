@@ -54,10 +54,10 @@ routes.put(
   userController.resetPassword
 );
 
-// routes.post(
-//   "/verifyEmail",
-//   authentication.isAuthenticated,
-//   userController.verifyEmail
-// );
+routes.post(
+  "/verifyEmail",
+  authentication.isAuthenticated,
+  userController.verifyEmail
+);
 
 export default routes;

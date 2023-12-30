@@ -108,9 +108,13 @@ DesignerController.signup = async (req, res) => {
       await designer.deleteOne();
       throw err;
     }
+    const verifyToken = await TokenModel.create({
+      account: designer._id,
+      model_type: "Designer",
+    });
+    const emailText = `Click on this link to verify your email: ${process.env.DOMAIN}verify?token=${verifyToken.token}`;
+    sendEmail(email, "Vrify your email", emailText);
     const token = await generateJWT(designer, jwtExp);
-    const emailText = welcomeTemplate(designer.name);
-    sendEmail(email, "Welcome onboard", emailText);
     res
       .status(201)
       .cookie("jwt", token, { httpOnly: false })
@@ -131,6 +135,11 @@ DesignerController.signin = async (req, res) => {
     });
     if (!designer) {
       return res.status(400).json({ error: "Wrong username or password" });
+    }
+    if (!designer.verified) {
+      return res.status(400).json({
+        error: "Please verify your email first",
+      });
     }
     const account = await AccountModel.findOne({
       user: designer._id,
@@ -390,5 +399,38 @@ DesignerController.resetPassword = async (req, res) => {
     });
   }
 };
+
+DesignerController.verifyEmail = async (req, res) => {
+  const token = req.query.token;
+
+  try {
+    const tokenObj = await TokenModel.findOneAndDelete({
+      token,
+    });
+    if (!tokenObj) {
+      return res.status(404).json({
+        message: "Token not found",
+      });
+    }
+    const designer = await DesignerModel.findByIdAndUpdate(tokenObj.account, {
+      verified: true,
+    });
+    if (!designer) {
+      return res.status(404).json({
+        message: "Designer not found",
+      });
+    }
+    const emailText = welcomeTemplate(designer.name);
+    sendEmail(designer.email, "Welcome onboard", emailText);
+    res.json({
+      message: "Email verified successfully",
+    });
+  } catch (err) {
+    res.status(400).json({
+      error: err.message,
+    });
+  }
+};
+
 
 export default DesignerController;

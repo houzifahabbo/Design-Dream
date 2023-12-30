@@ -74,4 +74,10 @@ routes.delete(
   DesignerController.deleteAccount
 );
 
+routes.post(
+  "/verifyEmail",
+  authentication.isAuthenticated,
+  DesignerController.verifyEmail
+);
+
 export default routes;

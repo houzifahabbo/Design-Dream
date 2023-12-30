@@ -65,6 +65,10 @@ const designerSchema = mongoose.Schema({
     type: Number,
     default: 0,
   },
+  verified: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 designerSchema.methods.calcAverageRating = (ratings) =>
@@ -73,9 +77,11 @@ designerSchema.methods.calcAverageRating = (ratings) =>
   ).toFixed(1);
 
 // Email validation function
-function validateEmail(email) {
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  return emailRegex.test(email);
+async function validateEmail(email) {
+  const res = await axios.get(
+    `https://emailvalidation.abstractapi.com/v1/?api_key=b149a0dd58954e97acde8560298b7894&email=${email}`
+  );
+  return res.data.is_valid_format.value;
 }
 
 function validatePhone(phoneNum) {
@@ -89,7 +95,7 @@ function validatePhone(phoneNum) {
 // Middleware to validate email and phone number before saving
 designerSchema.pre("save", async function (next) {
   if (this.isModified("email") || this.isNew) {
-    if (!validateEmail(this.email)) {
+    if (!(await validateEmail(this.email))) {
       return next(new Error("Invalid email format."));
     }
   }

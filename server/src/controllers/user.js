@@ -69,6 +69,11 @@ userController.signin = async (req, res) => {
         error: "Wrong username or password",
       });
     }
+    if (!user.verified) {
+      return res.status(400).json({
+        error: "Please verify your email",
+      });
+    }
     const account = await AccountModel.findOne({
       user: user._id,
     });
@@ -141,9 +146,13 @@ userController.signup = async (req, res) => {
       throw err;
     }
 
+    const verifyToken = await TokenModel.create({
+      account: user._id,
+      model_type: "User",
+    });
+    const emailText = `Click on this link to verify your email: ${process.env.DOMAIN}verify?token=${verifyToken.token}`;
+    sendEmail(email, "Vrify your email", emailText);
     const token = await generateJWT(user, jwtExp);
-    const emailText = welcomeTemplate(user.username);
-    sendEmail(email, "Welcome onboard", emailText);
     res.cookie("jwt", token, {
       httpOnly: false,
     });
@@ -314,6 +323,38 @@ userController.resetPassword = async (req, res) => {
     await account.save();
     res.json({
       message: "Password updated successfully",
+    });
+  } catch (err) {
+    res.status(400).json({
+      error: err.message,
+    });
+  }
+};
+
+userController.verifyEmail = async (req, res) => {
+  const token = req.query.token;
+
+  try {
+    const tokenObj = await TokenModel.findOneAndDelete({
+      token,
+    });
+    if (!tokenObj) {
+      return res.status(404).json({
+        message: "Token not found",
+      });
+    }
+    const user = await UserModel.findByIdAndUpdate(tokenObj.account, {
+      verified: true,
+    });
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+    const emailText = welcomeTemplate(user.username);
+    sendEmail(user.email, "Welcome to our website", emailText);
+    res.json({
+      message: "Email verified successfully",
     });
   } catch (err) {
     res.status(400).json({

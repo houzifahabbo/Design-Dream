@@ -30,14 +30,30 @@ const checkErorrCode = (err, res) => {
 DesignerController.getDesigners = async (req, res) => {
   try {
     // find all designers and get the avg rating for each one
-    const designers = await DesignerModel.find(
-      {},
-      { logo: 0, description: 0, photos: 0 }
-    );
+    const designers = await DesignerModel.find({});
     if (!designers) {
       return res.status(404).json({ message: "designers not found" });
     }
-    res.json(designers);
+    const designersWithBase64Images = designers.map((designer) => {
+      if (
+        designer.logo &&
+        designer.logo.imageData &&
+        designer.logo.contentType
+      ) {
+        return {
+          ...designer.toObject(),
+          logo: {
+            ...designer.logo.toObject(),
+            imageData: Buffer.from(designer.logo.imageData.buffer).toString(
+              "base64"
+            ),
+          },
+        };
+      }
+      return designer.toObject();
+    });
+
+    res.json(designersWithBase64Images);
   } catch (error) {
     res.status(500).json({
       message: error.message,
@@ -125,14 +141,12 @@ DesignerController.signup = async (req, res) => {
 };
 
 DesignerController.signin = async (req, res) => {
-  const { emailOrUsername, password, rememberMe } = req.body;
+  const { email, password, rememberMe } = req.body;
   const jwtExp = rememberMe
     ? Math.floor(Date.now() / 1000) + 1209600
     : Math.floor(Date.now() / 1000) + 86400; // 14 days expiration : 1 day expiration
   try {
-    const designer = await DesignerModel.findOne({
-      $or: [{ email: emailOrUsername }, { name: emailOrUsername }],
-    });
+    const designer = await DesignerModel.findOne({ email });
     if (!designer) {
       return res.status(400).json({ error: "Wrong username or password" });
     }

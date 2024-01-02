@@ -92,7 +92,7 @@ userController.signin = async (req, res) => {
     res.cookie("jwt", token, {
       httpOnly: false,
     });
-    res.json(token);
+    res.redirect(process.env.DOMAIN);
   } catch (err) {
     res.status(400).json({
       error: err.message,
@@ -150,7 +150,7 @@ userController.signup = async (req, res) => {
       account: user._id,
       model_type: "User",
     });
-    const emailText = `Click on this link to verify your email: ${process.env.DOMAIN}verify?token=${verifyToken.token}`;
+    const emailText = `Click on this link to verify your email: ${process.env.DOMAIN}/user/verifyEmail?token=${verifyToken.token}`;
     sendEmail(email, "Vrify your email", emailText);
     const token = await generateJWT(user, jwtExp);
     res.cookie("jwt", token, {

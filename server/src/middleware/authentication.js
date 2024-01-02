@@ -35,7 +35,7 @@ const isAuthenticated = (req, res, next) => {
       req.path.includes("/resetPassword")
     ) {
       // return res.redirect(`${process.env.DOMAIN}/api-docs`);
-      return res.json({ message: "You are already logged in" });
+      return res.redirect(process.env.DOMAIN);
     }
   }
   next();

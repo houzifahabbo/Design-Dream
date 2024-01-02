@@ -4,6 +4,9 @@ import userController from "../controllers/user.js";
 import authentication from "../middleware/authentication.js";
 import passport from "../utils/googleAuth.js";
 import googleCallbackMiddleware from "../middleware/googleAuth.js";
+import path from "path";
+const filename = new URL(import.meta.url).pathname;
+const dirname = path.dirname(filename);
 
 routes.post("/signin", authentication.isAuthenticated, userController.signin);
 routes.post("/signup", authentication.isAuthenticated, userController.signup);
@@ -59,5 +62,11 @@ routes.post(
   authentication.isAuthenticated,
   userController.verifyEmail
 );
+
+routes.get("/:page", authentication.isAuthenticated, (req, res) => {
+  res.sendFile(
+    path.join(dirname, "../../../client", `${req.params.page}.html`)
+  );
+});
 
 export default routes;

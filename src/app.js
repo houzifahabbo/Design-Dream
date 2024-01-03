@@ -19,15 +19,9 @@ const middleware = [
     extended: false,
   }),
   express.json(),
+  express.static(path.join(dirname, "../public")),
 ];
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
+
 
 middleware.forEach((item) => {
   app.use(item);

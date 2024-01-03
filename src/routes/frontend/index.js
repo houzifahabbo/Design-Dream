@@ -6,6 +6,7 @@ import orderRoutes from "./order.js";
 import ratingRoutes from "./rating.js";
 import { dirname } from "../../app.js";
 import path from "path";
+import { fstat } from "fs";
 const routes = express.Router();
 
 routes.get("/", (req, res) => {
@@ -22,7 +23,7 @@ routes.get("/signup", (req, res) => {
 });
 
 routes.get("/about-us", (req, res) => {
-  res.sendFile(path.join(dirname, "../public", `about-us.html`));
+  res.sendFile(path.join(dirname, "../../public", `about-us.html`));
 });
 routes.get("/contact", (req, res) => {
   res.sendFile(path.join(dirname, "../public", `contact.html`));

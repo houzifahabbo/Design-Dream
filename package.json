@@ -12,7 +12,9 @@
   "scripts": {
     "start": "nodemon src/app.js",
     "test": "NODE_ENV=test jest",
-    "build": "echo hello"
+    "build": "echo hello",
+    "rimraf": "./node_modules/rimraf/bin.js",
+    "clean": "npm prep && rimraf node_modules"
   },
   "dependencies": {
     "@adminjs/express": "^6.1.0",

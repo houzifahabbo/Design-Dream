@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 // Retrieve the MongoDB connection URI from the environment variables
-const mongoURI = process.env.MONGO_URI;
+const mongoURI = process.env.MONGODB_URI;
 const mongoURI_TEST = process.env.MONGODB_TEST_URI;
 
 const dbURI = process.env.NODE_ENV === "test" ? mongoURI_TEST : mongoURI;

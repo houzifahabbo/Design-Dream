@@ -5,7 +5,7 @@ import bodyParser from "body-parser";
 import path from "path";
 import apiRoutes from "./routes/backend/index.js";
 import frontendRoutes from "./routes/frontend/index.js";
-import startAdminJS from "./adminApp.js";
+// import startAdminJS from "./adminApp.js";
 import "./db/connection.js";
 const port = process.env.NODE_LOCAL_PORT || 5000;
 const app = express();
@@ -35,6 +35,6 @@ if (process.env.NODE_ENV !== "test") {
   });
 }
 
-startAdminJS();
+// startAdminJS();
 
 export { app, dirname };

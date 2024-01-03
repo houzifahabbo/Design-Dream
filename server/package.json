@@ -1,20 +1,14 @@
 {
-  "name": "backend-capstone",
+  "name": "Design Dream",
   "version": "1.0.0",
   "main": "src/app.js",
   "type": "module",
+  "author": "Houzifa Habbo",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/ReCoded-Org/backend-capstone-template.git"
+    "url": "git+ssh://git@github.com:houzifahabbo/Design-Dream.git"
   },
-  "author": "Ammar-64",
   "license": "MIT",
-  "//": {
-    "start": "concurrently \"npm run start-backend\" \"npm run start-frontend\"",
-    "start-backend": "nodemon src/app.js",
-    "start-frontend": "cd front-end && npm start",
-    "test": "NODE_ENV=test jest"
-  },
   "scripts": {
     "start": "nodemon src/app.js",
     "test": "NODE_ENV=test jest"
@@ -33,6 +27,7 @@
     "express": "^4.17.2",
     "express-session": "^1.17.3",
     "googleapis": "^105.0.0",
+    "jquery": "^3.7.1",
     "jsonwebtoken": "^9.0.1",
     "mongodb": "^5.7.0",
     "mongoose": "^7.6.7",

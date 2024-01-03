@@ -3,7 +3,8 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import path from "path";
-import apiRoutes from "./routes/index.js";
+import apiRoutes from "./routes/backend/index.js";
+import frontendRoutes from "./routes/frontend/index.js";
 import startAdminJS from "./adminApp.js";
 import "./db/connection.js";
 const port = process.env.NODE_LOCAL_PORT || 5000;
@@ -18,21 +19,15 @@ const middleware = [
     extended: false,
   }),
   express.json(),
-  // express.static(path.join(dirname, "../../client")),
 ];
 
 middleware.forEach((item) => {
   app.use(item);
 });
 
-app.use(express.static(path.join(dirname, "../../client")));
+app.use("/api", apiRoutes);
 
-app.use("/", apiRoutes);
-
-app.get("/:page", (req, res) => {
-  const page = req.params.page;
-  res.sendFile(path.join(dirname, "../../client", `${page}.html`));
-});
+app.use("/", frontendRoutes);
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(port, () => {
@@ -42,4 +37,4 @@ if (process.env.NODE_ENV !== "test") {
 
 startAdminJS();
 
-export default app;
+export { app, dirname };

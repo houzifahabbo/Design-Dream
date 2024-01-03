@@ -66,16 +66,48 @@ DesignerController.getDesignerByName = async (req, res) => {
     const { DesignerName } = req.params;
     const designer = await DesignerModel.findOne({
       name: DesignerName,
-    }).populate("ratings");
+    })
+      .populate("ratings options")
+      .select(
+        "averageRating name logo description phoneNumber email options photos"
+      );
     if (!designer) {
       return res.status(404).json({ message: "designer not found" });
     }
-    designer.averageRating = await designer.averageRating(designer.ratings);
-    res.json(designer);
+    const designersWithBase64Images = () => {
+      let result = designer.toObject();
+      if (
+        designer.logo &&
+        designer.logo.imageData &&
+        designer.logo.contentType
+      ) {
+        result = {
+          ...designer.toObject(),
+          logo: {
+            ...designer.logo.toObject(),
+            imageData: Buffer.from(designer.logo.imageData.buffer).toString(
+              "base64"
+            ),
+          },
+        };
+      }
+      if (designer.photos) {
+        result = {
+          ...result,
+          photos: designer.photos.map((photo) => {
+            return {
+              ...photo.toObject(),
+              imageData: Buffer.from(photo.imageData.buffer).toString("base64"),
+            };
+          }),
+        };
+      }
+      return result;
+    };
+    res.json(designersWithBase64Images());
   } catch (error) {
     res.status(500).json({
-      message: "Error while getting designer",
-      error,
+      error: error.message,
     });
   }
 };

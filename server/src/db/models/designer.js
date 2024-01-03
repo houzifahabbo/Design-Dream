@@ -49,9 +49,18 @@ const designerSchema = mongoose.Schema({
       ref: "Rating",
     },
   ],
-  links: {
-    type: Object,
-  },
+  links: [
+    {
+      type: {
+        type: String,
+        enum: ["Website", "Instagram", "Facebook", "X", "Linkedin"],
+      },
+
+      url: {
+        type: String,
+      },
+    },
+  ],
   orders: [
     {
       type: mongoose.Schema.Types.ObjectId,

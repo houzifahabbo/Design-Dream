@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import DesignerModel from "../db/models/designer.js";
 import UserModel from "../db/models/user.js";
+import path from "path";
 
 const isAdminMiddleware = (req, res, next) => {
   const token = req.cookies.jwt;
@@ -79,4 +80,8 @@ const authMiddleware = (role) => {
   };
 };
 
-export default { isAdminMiddleware, isAuthenticated, authMiddleware };
+export default {
+  isAdminMiddleware,
+  isAuthenticated,
+  authMiddleware,
+};

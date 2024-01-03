@@ -19,7 +19,6 @@ const middleware = [
     extended: false,
   }),
   express.json(),
-  express.static(path.join(dirname, "../public")),
 ];
 
 

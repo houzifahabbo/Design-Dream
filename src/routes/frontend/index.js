@@ -31,6 +31,5 @@ routes.use("/designer", designerRoutes);
 routes.use("/payment", paymentRoutes);
 routes.use("/order", orderRoutes);
 routes.use("/rating", ratingRoutes);
-routes.use("/public", express.static(path.join(dirname, "../public")));
 
 export default routes;

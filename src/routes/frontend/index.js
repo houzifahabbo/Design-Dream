@@ -21,10 +21,10 @@ routes.get("/signup", (req, res) => {
   res.json({ message: "signup" });
 });
 
-routes.get("about-us", (req, res) => {
+routes.get("/about-us", (req, res) => {
   res.sendFile(path.join(dirname, "../public", `about-us.html`));
 });
-routes.get("contact", (req, res) => {
+routes.get("/contact", (req, res) => {
   res.sendFile(path.join(dirname, "../public", `contact.html`));
 });
 routes.use("/user", userRoutes);

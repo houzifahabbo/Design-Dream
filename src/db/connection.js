@@ -6,7 +6,7 @@ const mongoURI_TEST = process.env.MONGODB_TEST_URI;
 const dbURI = process.env.NODE_ENV === "test" ? mongoURI_TEST : mongoURI;
 //todo change the dbURI
 // Establish a connection to the database
-mongoose.connect("mongodb://localhost:27017/arch", {
+mongoose.connect(dbURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });

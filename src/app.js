@@ -6,7 +6,7 @@ import path from "path";
 import apiRoutes from "./routes/backend/index.js";
 import frontendRoutes from "./routes/frontend/index.js";
 //todo add adminjs
-// import startAdminJS from "./adminApp.js";
+import startAdminJS from "./adminApp.js";
 import "./db/connection.js";
 const port = process.env.NODE_LOCAL_PORT || 5000;
 const app = express();
@@ -30,13 +30,12 @@ app.use("/api", apiRoutes);
 
 app.use("/", frontendRoutes);
 
-
 if (process.env.NODE_ENV !== "test") {
   app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
   });
 }
 
-// startAdminJS();
+startAdminJS();
 
 export { app, dirname };

@@ -20,7 +20,7 @@ const middleware = [
     extended: false,
   }),
   express.json(),
-  express.static("public"),
+  express.static(path.join(dirname, "../public")),
 ];
 
 middleware.forEach((item) => {

@@ -317,7 +317,7 @@ DesignerController.deleteAccount = async (req, res) => {
     }
     res.clearCookie("jwt");
     res.json({ message: "designer account deleted successfully" });
-    // res.redirect(`${process.env.DOMAIN}/api-docs`);
+    res.redirect("/");
   } catch (error) {
     res.status(422).json({ error: "Error while deleting designer account" });
   }

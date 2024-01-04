@@ -11,7 +11,7 @@
   "license": "MIT",
   "//TODO": "CHANGE TO NODE",
   "scripts": {
-    "start": "nodemon src/app.js",
+    "start": "node src/app.js",
     "test": "NODE_ENV=test jest"
   },
   "dependencies": {

@@ -19,7 +19,7 @@ const googleCallbackMiddleware = async (req, res) => {
       maxAge: 14 * 24 * 60 * 60 * 1000,
       httpOnly: false,
     });
-    res.redirect(`${process.env.DOMAIN}/api-docs`);
+    res.redirect(`${process.env.DOMAIN}/`);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });

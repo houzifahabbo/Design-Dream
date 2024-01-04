@@ -57,19 +57,11 @@ if (window.location.href.includes("signin")) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(
-          window.location.href.includes("designer")
-            ? {
-                email: emailInput.value,
-                password: passInput.value,
-                rememberMe: rememberMe.checked,
-              }
-            : {
-                emailOrUsername: emailInput.value,
-                password: passInput.value,
-                rememberMe: rememberMe.checked,
-              }
-        ),
+        body: JSON.stringify({
+          email: emailInput.value,
+          password: passInput.value,
+          rememberMe: rememberMe.checked,
+        }),
       })
         .then((response) => {
           if (response.status === 200) {
@@ -266,11 +258,19 @@ document.addEventListener("DOMContentLoaded", function () {
       // If the URL matches, hide the "Login with Google" button
       const googleButton = document.querySelector(".google");
       const line = document.querySelector(".line");
+      const signupLink = document.querySelector(".signup-link");
+      const forgotPassword = document.querySelector(".forgot-pass");
       if (googleButton) {
         googleButton.style.display = "none";
       }
       if (line) {
         line.style.display = "none";
+      }
+      if (signupLink) {
+        signupLink.href = "/designer/signup";
+      }
+      if (forgotPassword) {
+        forgotPassword.href = "/designer/forgotPassword";
       }
     } else if (currentURL.includes("/signup")) {
       const googleButton = document.querySelector(".google");
@@ -278,6 +278,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const username = document.querySelector(".username");
       const lastname = document.querySelector(".last-name");
       const firstname = document.querySelector(".first-name");
+      const loginLink = document.querySelector(".login-link");
 
       if (googleButton) {
         googleButton.remove();
@@ -294,6 +295,9 @@ document.addEventListener("DOMContentLoaded", function () {
       if (firstname) {
         firstname.remove();
       }
+      if (loginLink) {
+        loginLink.href = "/designer/signin";
+      }
     }
   } else if (
     currentURL.includes("/signup") &&
@@ -303,7 +307,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const description = document.querySelector(".description");
     const logo = document.getElementById("logo");
     const logoLabel = document.querySelector(".logo-label");
-
+    const loginLink = document.querySelector(".login-link");
     if (name) {
       name.remove();
     }
@@ -316,5 +320,18 @@ document.addEventListener("DOMContentLoaded", function () {
     if (logoLabel) {
       logoLabel.remove();
     }
+    if (loginLink) {
+      loginLink.href = "/signin";
+    }
+  } else if (currentURL.includes("/signin")) {
+    const signupLink = document.querySelector(".signup-link");
+    const forgotPassword = document.querySelector(".forgot-pass");
+    if (signupLink) {
+      signupLink.href = "/signup";
+    }
+    if (forgotPassword) {
+      forgotPassword.href = "/forgotPassword";
+    }
   }
 });
+

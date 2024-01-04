@@ -20,7 +20,8 @@ document.addEventListener("DOMContentLoaded", function () {
       "designer-post",
       "d-flex",
       "flex-row",
-      "designer-img"
+      "designer-img",
+      "align-items-center"
     );
     const aElement = document.createElement("a");
     aElement.classList.add("designer-post", "d-flex", "flex-row");
@@ -34,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (designer.logo && designer.logo.imageData && designer.logo.contentType) {
       designerImage.src = `data:${designer.logo.contentType};base64,${designer.logo.imageData}`;
     } else {
-      designerImage.src = "img/post.png";
+      designerImage.src = "../img/post.png";
     }
     designerImage.alt = designer.name;
 
@@ -60,6 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
     rating.style.color = "#000";
     rating.innerHTML = designer.averageRating;
 
+    console.log(designer);
     // Append elements to the designerDiv
     designerDiv.appendChild(aElement);
     aElement.appendChild(thumbDiv);
@@ -67,7 +69,6 @@ document.addEventListener("DOMContentLoaded", function () {
     aElement.appendChild(detailsDiv);
     detailsDiv.appendChild(designerName);
     detailsDiv.appendChild(designerDescription);
-
     if (designer.links) {
       const designerLinks = document.createElement("div");
       designerLinks.classList.add("row", "justify-content-start");
@@ -79,9 +80,9 @@ document.addEventListener("DOMContentLoaded", function () {
           icon.classList.add("fa", "fa-facebook");
           icon.style.color = "#3b5998";
         }
-        if (website.type === "Twitter") {
-          icon.classList.add("fa", "fa-twitter");
-          icon.style.color = "#1da1f2";
+        if (website.type === "X") {
+          icon.classList.add("fa", "fa-brands", "fa-x-twitter");
+          icon.style.color = "#000";
         }
         if (website.type === "Instagram") {
           icon.classList.add("fa", "fa-instagram");
@@ -130,19 +131,31 @@ document.addEventListener("DOMContentLoaded", function () {
     designerOptionDiv.classList.add("designer-post", "d-flex", "flex-column");
     designer.options.forEach((option) => {
       const designerOption = document.createElement("div");
+      designerOption.classList.add(
+        "designer-post",
+        "d-flex",
+        "flex-column",
+        "m-10"
+      );
       const designerOptionName = document.createElement("h4");
       designerOptionName.classList.add("d-flex", "flex-row", "align-items-top");
       designerOptionName.innerHTML = option.label;
+      designerOptionName.style.margin = "0 0 10px 0";
       const designerOptionRequired = document.createElement("i");
       designerOptionRequired.classList.add("fa", "fa-asterisk");
       designerOptionRequired.style.color = "#ff0000";
       designerOptionRequired.style.fontSize = "8px";
-      designerOptionRequired.style.margin = "0 0 0 5px";
+      designerOptionRequired.style.margin = "0 10px 0 5px";
       const designerOptionPrice = document.createElement("p");
       designerOptionPrice.innerHTML = `+${option.price}$`;
+      designerOptionPrice.style.fontSize = "10px";
+      designerOptionPrice.style.margin = "0";
       designerOptionDiv.appendChild(designerOption);
 
       designerOptionName.appendChild(designerOptionRequired);
+      if (option.price !== 0 && option.price) {
+        designerOptionName.appendChild(designerOptionPrice);
+      }
       designerOption.appendChild(designerOptionName);
 
       if (option.type === "text field" || option.type === "text area") {
@@ -151,6 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
         designerOptionInput.type = option.dataType;
         designerOptionInput.placeholder = option.placeholder;
         designerOptionInput.required = option.required;
+        designerOptionInput.classList.add("designer-input");
         designerOption.appendChild(designerOptionInput);
       } else if (option.type === "checkbox" || option.type === "radio button") {
         const checkboxContainer = document.createElement("div");
@@ -219,10 +233,11 @@ document.addEventListener("DOMContentLoaded", function () {
           designerOption.appendChild(designerOptionCheckboxDiv);
         }
       } else if (option.type === "dropdown") {
-        const designerOptionDiv = document.createElement("div");
-        designerOptionDiv.classList.add("default-select");
-        designerOptionDiv.id = "default-select";
         const designerOptionSelect = document.createElement("select");
+        designerOptionSelect.classList.add("designer-input");
+        designerOptionSelect.name = option.label;
+        designerOptionSelect.id = option.label;
+        designerOptionSelect.style.padding = "10px 20px";
         designerOptionSelect.required = option.required;
         option.optionList.unshift({ text: "Select an option", price: 0 });
         option.optionList.forEach((option) => {
@@ -234,8 +249,8 @@ document.addEventListener("DOMContentLoaded", function () {
               : option.text + "     +" + option.price + "$";
           designerOptionSelect.appendChild(designerOptionSelectOption);
         });
-        designerOptionDiv.appendChild(designerOptionSelect);
-        designerOption.appendChild(designerOptionDiv);
+        // designerOptionDiv.appendChild(designerOptionSelect);
+        designerOption.appendChild(designerOptionSelect);
       } else if (option.type === "date and time") {
         const designerOptionInput = document.createElement("input");
         designerOptionInput.type = option.type;
@@ -243,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function () {
         designerOptionInput.placeholder = option.placeholder;
         designerOptionInput.min = option.min;
         designerOptionInput.max = option.max;
-
+        designerOptionInput.classList.add("designer-input");
         designerOption.appendChild(designerOptionInput);
       } else if (option.type === "date" || option.type === "time") {
         const designerOptionInput = document.createElement("input");
@@ -252,22 +267,18 @@ document.addEventListener("DOMContentLoaded", function () {
         designerOptionInput.placeholder = option.placeholder;
         designerOptionInput.min = option.min;
         designerOptionInput.max = option.max;
+        designerOptionInput.classList.add("designer-input");
+
         designerOption.appendChild(designerOptionInput);
-      }
-      if (option.price !== 0 && option.price) {
-        designerOption.appendChild(designerOptionPrice);
       }
       designerOptionsContainer.appendChild(designerOptionDiv);
     });
     const orderButton = document.createElement("a");
-    orderButton.classList.add(
-      "genric-btn",
-      "primary",
-      "mt-30",
-      "align-self-end"
-    );
+    orderButton.classList.add("genric-btn", "primary", "align-self-end");
     orderButton.innerHTML = "Order";
-    orderButton.href = `/order/${designer.name}`;
+    orderButton.onclick = () => {
+      order(designer._id);
+    };
     designerOptionDiv.appendChild(orderButton);
     getData(`/api/rating/${designer._id}`, {}, "GET")
       .then((data) => {
@@ -292,7 +303,7 @@ document.addEventListener("DOMContentLoaded", function () {
       data.ratings.forEach((rating) => {
         const ratingsDiv = document.createElement("div");
         ratingsDiv.classList.add(
-          "single-popular-post",
+          "designer-post",
           "d-flex",
           "flex-column",
           "mt-20"
@@ -309,15 +320,15 @@ document.addEventListener("DOMContentLoaded", function () {
         ratingAndTitle.classList.add(
           "d-flex",
           "flex-column",
-          "align-items-start"
+          "align-items-start",
+          "ml-10"
         );
         const ratingUserName = document.createElement("h6");
         ratingUserName.innerHTML = rating.user.username;
-        ratingUserName.style.margin = "0 0 10px 0";
+        ratingUserName.style.margin = "0 0 5px 0";
         const userImage = document.createElement("i");
         userImage.classList.add("fa", "fa-user-circle");
-        userImage.style.fontSize = "30px";
-        userImage.style.margin = "0 10px 0 0";
+        userImage.style.fontSize = "50px";
         ratingUser.appendChild(userImage);
         ratingAndTitle.appendChild(ratingUserName);
 
@@ -343,50 +354,55 @@ document.addEventListener("DOMContentLoaded", function () {
           ratingAndTitle.append(ratingStarsIcons(5, 0, 0));
         }
         ratingUser.appendChild(ratingAndTitle);
+
         const replyAndTitle = document.createElement("div");
         replyAndTitle.classList.add(
           "d-flex",
-          "flex-column",
+          "flex-row",
           "align-items-center",
-          "justify-content-around",
           "mr-20"
         );
         const ratingReview = document.createElement("p");
         ratingReview.innerHTML = rating.review;
-        ratingReview.style.margin = "10px";
-        const ratingReply = document.createElement("div");
-        const replyDiv = document.createElement("div");
-        replyDiv.classList.add("d-flex", "flex-column");
-        const designerLogo = document.createElement("img");
-        designerLogo.classList.add("img-fluid");
-        if (
-          designer.logo &&
-          designer.logo.imageData &&
-          designer.logo.contentType
-        ) {
-          designerLogo.src = `data:${designer.logo.contentType};base64,${designer.logo.imageData}`;
-        } else {
-          designerLogo.src = "img/post.png";
-        }
-        designerLogo.alt = designer.name;
-        designerLogo.style.width = "50px";
-        designerLogo.style.height = "50px";
-        designerLogo.style.borderRadius = "50%";
-        designerLogo.style.margin = "0 0 10px 0";
-        replyAndTitle.appendChild(designerLogo);
-        const replyDesigner = document.createElement("h6");
-        replyDesigner.innerHTML = designer.name;
-        const replyText = document.createElement("p");
-        replyText.innerHTML = rating.reply.text;
-        replyAndTitle.appendChild(replyDesigner);
-        replyDiv.appendChild(replyAndTitle);
-        replyDiv.appendChild(replyText);
-        ratingReply.appendChild(replyDiv);
+        ratingReview.style.margin = "10px 10px 10px 25px";
         ratingsDiv.appendChild(ratingUser);
         ratingsDiv.appendChild(ratingReview);
-        ratingsDiv.appendChild(ratingReply);
-        // ratingsDiv.appendChild(ratingDiv);
-        // ratingsDiv.appendChild(ratingTumb);
+        if (rating.reply) {
+          const replyDiv = document.createElement("div");
+          replyDiv.classList.add(
+            "d-flex",
+            "flex-column",
+            "reply-container",
+            "ml-20"
+          );
+          const designerLogo = document.createElement("img");
+          designerLogo.classList.add("img-fluid");
+          if (
+            designer.logo &&
+            designer.logo.imageData &&
+            designer.logo.contentType
+          ) {
+            designerLogo.src = `data:${designer.logo.contentType};base64,${designer.logo.imageData}`;
+          } else {
+            designerLogo.src = "../img/post.png";
+          }
+          designerLogo.alt = designer.name;
+          designerLogo.style.width = "40";
+          designerLogo.style.height = "40px";
+          designerLogo.style.borderRadius = "50%";
+          designerLogo.style.margin = "0 10px 10px 0";
+          designerLogo.style.boxShadow = "0 0 10px 0 rgba(0, 0, 0, 0.2)";
+          replyAndTitle.appendChild(designerLogo);
+          const replyDesigner = document.createElement("h6");
+          replyDesigner.innerHTML = designer.name;
+          const replyText = document.createElement("p");
+          replyText.innerHTML = rating.reply.text;
+          replyText.style.margin = "10px 10px 10px 25px";
+          replyAndTitle.appendChild(replyDesigner);
+          replyDiv.appendChild(replyAndTitle);
+          replyDiv.appendChild(replyText);
+          ratingsDiv.appendChild(replyDiv);
+        }
         ratingsContainer.appendChild(ratingsDiv);
       });
     }
@@ -422,8 +438,30 @@ document.addEventListener("DOMContentLoaded", function () {
       ratingEmptyStarIcon.style.margin = "0 0 0 2px";
       ratingStars.appendChild(ratingEmptyStarIcon);
     }
-
-    console.log(ratingStars);
     return ratingStars;
+  }
+
+  function order(designerId) {
+    fetch("/api/order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        designerId: designerId,
+      }),
+    })
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        throw new Error("Request failed!");
+      })
+      .then((data) => {
+        console.log(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }
 });

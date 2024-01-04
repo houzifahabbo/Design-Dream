@@ -1,7 +1,7 @@
 import OrderModel from "../db/models/order.js";
 import DesignerModel from "../db/models/designer.js";
 const orderController = {};
-
+//TODO add the data to the order
 orderController.getOrders = async (req, res) => {
   const designer = req.designer;
   const user = req.user;
@@ -23,15 +23,18 @@ orderController.getOrders = async (req, res) => {
 };
 
 orderController.createOrder = async (req, res) => {
-  const { reqdesigner } = req.body;
+  const { designerId } = req.body;
   const user = req.user;
   try {
-    const designer = await DesignerModel.findById(reqdesigner.id);
+    const designer = await DesignerModel.findById(designerId);
+    if (!designer) {
+      return res.status(404).json({ error: "Designer not found" });
+    }
+    designer;
     const order = await OrderModel.create({
       customer: user.id,
-      designer: reqdesigner.id,
+      designer: designer.id,
       options: designer.options,
-      paymentData: "paymentData",
     });
 
     designer.orders.push(order.id);

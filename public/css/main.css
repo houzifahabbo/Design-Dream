@@ -2601,9 +2601,9 @@ body.mobile-nav-active #mobile-nav-toggle {
 }
 
 .post-list .designer-post {
-  padding: 30px;
+  padding: 15px;
+  margin-bottom: 20px;
   background-color: #f9f9ff;
-  /* margin-bottom: 30px; */
 }
 
 
@@ -2611,6 +2611,8 @@ body.mobile-nav-active #mobile-nav-toggle {
  width: 150px;
   height: 150px;
  margin-right: 30px;
+ border-radius: 50%;
+ box-shadow: 0px 0px 40px 0px rgba(0, 0, 0, 0.2);
 }
 
 .designer-post .d-flex{
@@ -4175,13 +4177,10 @@ body.mobile-nav-active #mobile-nav-toggle {
 ################
 */
 
-.single-popular-post{
-  margin:10px;
-  padding: 10px;
-  background-color: #161f2e;
-  color: #fff;
-}
-.single-popular-post .user-details h6 , .single-popular-post .user-details i{
+.designer-post .user-details h6 , .designer-post .user-details i , .designer-post .reply-container h6{
   color: #5fbce2  ;
 }
+
+
+
 

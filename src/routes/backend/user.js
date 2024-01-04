@@ -30,7 +30,7 @@ routes.post(
   userController.forgotPassword
 );
 routes.put(
-  "/resetPassword",
+  "/resetPassword/:token",
   authentication.isAuthenticated,
   userController.resetPassword
 );

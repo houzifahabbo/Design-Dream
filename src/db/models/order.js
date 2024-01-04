@@ -31,17 +31,14 @@ const orderSchema = mongoose.Schema({
   paymentData: {
     sessionID: {
       type: String,
-      required: true,
       select: false,
       unique: true,
     },
     amount: {
       type: Number,
-      required: true,
     },
     date: {
       type: Date,
-      required: true,
     },
   },
   orderDate: {

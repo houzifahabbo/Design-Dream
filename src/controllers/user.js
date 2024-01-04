@@ -49,20 +49,13 @@ userController.getUserByUsername = async (req, res) => {
 };
 
 userController.signin = async (req, res) => {
-  const { emailOrUsername, password, rememberMe } = req.body;
+  const { email, password, rememberMe } = req.body;
   const jwtExp = rememberMe
     ? Math.floor(Date.now() / 1000) + 1209600
     : Math.floor(Date.now() / 1000) + 86400; // 14 days expiration : 1 day expiration
   try {
     const user = await UserModel.findOne({
-      $or: [
-        {
-          email: emailOrUsername,
-        },
-        {
-          username: emailOrUsername,
-        },
-      ],
+      email,
     });
     if (!user) {
       return res.status(400).json({
@@ -286,7 +279,7 @@ userController.forgotPassword = async (req, res) => {
     const emailText = resetPasswordTemplate(token.token, user.username);
     sendEmail(email, "Reset Password", emailText);
     res.json({
-      message: "email sent successfully",
+      message: "Email sent successfully",
     });
   } catch (err) {
     res.status(400).json({
@@ -297,6 +290,7 @@ userController.forgotPassword = async (req, res) => {
 
 userController.resetPassword = async (req, res) => {
   const { password, confirmPassword } = req.body;
+  const tokenParams = req.params.token;
   try {
     if (password !== confirmPassword) {
       return res.status(400).json({
@@ -304,7 +298,7 @@ userController.resetPassword = async (req, res) => {
       });
     }
     const token = await TokenModel.findOneAndDelete({
-      token: req.query.token,
+      token: tokenParams,
     });
     if (!token) {
       return res.status(404).json({

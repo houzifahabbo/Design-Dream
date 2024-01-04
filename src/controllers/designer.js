@@ -69,7 +69,7 @@ DesignerController.getDesignerByName = async (req, res) => {
     })
       .populate("options")
       .select(
-        "averageRating name logo description phoneNumber email options photos"
+        "averageRating name logo description phoneNumber email options photos links"
       );
     if (!designer) {
       return res.status(404).json({ message: "designer not found" });

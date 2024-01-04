@@ -31,6 +31,18 @@ routes.get("/contact", (req, res) => {
   res.sendFile(path.join(dirname, "../public", `contact.html`));
 });
 
+routes.get("/forgotPassword", authentication.isAuthenticated, (req, res) => {
+  res.sendFile(path.join(dirname, "../public", `forgot-password.html`));
+});
+
+routes.get(
+  "/resetPassword/:token",
+  authentication.isAuthenticated,
+  (req, res) => {
+    res.sendFile(path.join(dirname, "../public", `reset-password.html`));
+  }
+);
+
 routes.get(
   "/google",
   authentication.isAuthenticated,

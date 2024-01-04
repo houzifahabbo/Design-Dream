@@ -63,7 +63,7 @@ passport.use(
     {
       clientID: process.env.GAPP_CLIENT_ID,
       clientSecret: process.env.GAPP_CLIENT_SECRET,
-      callbackURL: "/user/google/callback",
+      callbackURL: "/google/callback",
     },
     async (accessToken, refreshToken, profile, done) => {
       try {

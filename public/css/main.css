@@ -1248,10 +1248,11 @@ h1, h2, h3, h4, h5, h6 {
   display: block;
   width: 100%;
   line-height: 40px;
-  border: none;
+  border: 1px solid #161f2e;
   outline: none;
   background: #f9f9ff;
   padding: 0 20px;
+  margin: 20px 0;
 }
 
 .designer-input:focus {
@@ -1530,7 +1531,7 @@ h1, h2, h3, h4, h5, h6 {
   width: 16px;
   height: 16px;
   border-radius: 3px;
-  background: #f9f9ff;
+  background: #ffffff;
   position: relative;
   cursor: pointer;
 }
@@ -1556,11 +1557,11 @@ h1, h2, h3, h4, h5, h6 {
   height: 100%;
   border-radius: 3px;
   cursor: pointer;
-  border: 1px solid #f1f1f1;
+  border: 1px solid #d6d6d6;
 }
 
 .primary-checkbox input:checked + label {
-  background: url(../img/elements/primary-check.png) no-repeat center center/cover;
+  background: url(/img/elements/primary-check.png) no-repeat center center/cover;
   border: none;
 }
 
@@ -4173,3 +4174,14 @@ body.mobile-nav-active #mobile-nav-toggle {
                End Blog Details  Page style
 ################
 */
+
+.single-popular-post{
+  margin:10px;
+  padding: 10px;
+  background-color: #161f2e;
+  color: #fff;
+}
+.single-popular-post .user-details h6 , .single-popular-post .user-details i{
+  color: #5fbce2  ;
+}
+

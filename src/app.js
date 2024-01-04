@@ -5,6 +5,7 @@ import bodyParser from "body-parser";
 import path from "path";
 import apiRoutes from "./routes/backend/index.js";
 import frontendRoutes from "./routes/frontend/index.js";
+//todo add adminjs
 // import startAdminJS from "./adminApp.js";
 import "./db/connection.js";
 const port = process.env.NODE_LOCAL_PORT || 5000;
@@ -19,19 +20,11 @@ const middleware = [
     extended: false,
   }),
   express.json(),
-  express.static(path.join(dirname, "../public")),
+  express.static("public"),
 ];
-
 
 middleware.forEach((item) => {
   app.use(item);
-});
-
-app.get("/test", (req, res) => {
-  const path = `/api/item/${v4()}`;
-  res.setHeader("Content-Type", "text/html");
-  res.setHeader("Cache-Control", "s-max-age=1, stale-while-revalidate");
-  res.end(`Hello! Go to item: <a href="${path}">${path}</a>`);
 });
 app.use("/api", apiRoutes);
 

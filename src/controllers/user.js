@@ -92,9 +92,9 @@ userController.signin = async (req, res) => {
     res.cookie("jwt", token, {
       httpOnly: false,
     });
-    res.redirect(process.env.DOMAIN);
+    res.redirect("/");
   } catch (err) {
-    res.status(400).json({
+    res.json({
       error: err.message,
     });
   }
@@ -156,7 +156,7 @@ userController.signup = async (req, res) => {
     res.cookie("jwt", token, {
       httpOnly: false,
     });
-    res.json(token);
+    res.redirect("/");
   } catch (err) {
     checkErorrCode(err, res);
   }

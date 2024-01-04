@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
-
+import mongooseAutoPopulate from "mongoose-autopopulate";
 const ratingSchema = mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
+    autopopulate: true,
   },
   rating: {
     type: Number,
@@ -12,25 +13,17 @@ const ratingSchema = mongoose.Schema({
   review: {
     type: String,
   },
-  reply: [
-    {
-      account: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "modelType",
-        required: true,
-        uniqe: true,
-      },
-      modelType: {
-        type: String,
-        enum: ["User", "Designer"],
-        required: true,
-      },
-      text: {
-        type: String,
-        required: true,
-      },
+  reply: {
+    designer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Designer",
     },
-  ],
+    text: {
+      type: String,
+    },
+  },
 });
+
+ratingSchema.plugin(mongooseAutoPopulate);
 
 export default mongoose.model("Rating", ratingSchema);

@@ -67,7 +67,7 @@ DesignerController.getDesignerByName = async (req, res) => {
     const designer = await DesignerModel.findOne({
       name: DesignerName,
     })
-      .populate("ratings options")
+      .populate("options")
       .select(
         "averageRating name logo description phoneNumber email options photos"
       );
@@ -125,6 +125,7 @@ DesignerController.signup = async (req, res) => {
   } = req.body;
   const { buffer, mimetype } = req.file;
   try {
+    console.log(req.file);
     if (password !== confirmPassword) {
       return res.status(400).json({ error: "Passwords do not match" });
     }

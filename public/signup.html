@@ -18,34 +18,37 @@
                     <header>Sign up</header>
                     
                     <div class="media-options">
-                        <a href="/user/google" class="input-field google">
+                        <a href="/google" class="input-field google">
                           <img class="google-img" alt="Google sign-in" 
                           src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" />
                           <span> Login with Google</span>
                           </a>
                       </div>
                       <div class="line"></div>
-                    <form>
-                        <div class="field input-field">
-                            <input type="text" placeholder="First name" class="input first-name" required>
+                      <form id="signupForm" enctype="multipart/form-data">
+                        <div class="field input-field  first-name">
+                            <input type="text" placeholder="First name" class="input" required>
                         </div>
-                        <div class="field input-field">
-                            <input type="text" placeholder="Last name" class="input last-name" required>
+                        <div class="field input-field  last-name">
+                            <input type="text" placeholder="Last name" class="input" required>
                         </div>
-                        <div class="field input-field">
-                            <input type="text" placeholder="Username" class="input username" required>
+                        <div class="field input-field username">
+                            <input type="text" placeholder="Username" class="input" required>
                         </div>
                         <div class="field email-field">
                             <div class="input-field">
-                              <input type="email" placeholder="Enter your email" class="email" />
+                              <input type="email" placeholder="Enter your email" class="email" name="email" />
                             </div>
                             <span class="error email-error">
                               <i class="bx bx-error-circle error-icon"></i>
                               <p class="error-text">Please enter a valid email</p>
                             </span>
                           </div>
+                          <div class="field input-field name">
+                            <input type="text" placeholder="Designer name" class="input" required name="name">
+                        </div>
                           <div class="field input-field">
-                            <input id="phone" type="tel" name="phone" placeholder="Phone number" required class="input phone-number" inputmode="tel" pattern="[0-9]{4,12}" />
+                            <input id="phone" type="tel" name="phoneNumber" placeholder="Phone number" required class="input phone-number" inputmode="tel" pattern="[0-9]{4,12}" />
                         </div>
                           <div class="field create-password">
                             <div class="input-field">
@@ -53,6 +56,7 @@
                                 type="password"
                                 placeholder="Create password"
                                 class="password"
+                                name="password"
                               />
                               <i class="bx bx-hide show-hide"></i>
                             </div>
@@ -70,12 +74,27 @@
                                 type="password"
                                 placeholder="Confirm password"
                                 class="cPassword"
+                                name="confirmPassword"
                               />
                               <i class="bx bx-hide show-hide"></i>
                             </div>
                             <span class="error cPassword-error">
                               <i class="bx bx-error-circle error-icon"></i>
                               <p class="error-text">Password don't match</p>
+                            </span>
+                          </div>
+                          <div class="field input-field description">
+                            <input type="text" placeholder="description" class="input" required>
+                        </div>
+                        
+                        <div class="field logo">
+                            <label for="logo" class="logo-label">Logo: </label>
+                            <input type="file" placeholder="logo" class="input" id="logo" name="logo" required name="logo" accept="image/*">
+                          </div>
+                          <div class="field error-msg">
+                            <span class="error backend-error">
+                              <i class="bx bx-error-circle error-icon"></i>
+                              <p class="error-text"></p>
                             </span>
                           </div>
                           <div class="input-field button">

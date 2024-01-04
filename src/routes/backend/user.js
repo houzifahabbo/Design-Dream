@@ -7,25 +7,6 @@ import googleCallbackMiddleware from "../../middleware/googleAuth.js";
 
 routes.post("/signin", authentication.isAuthenticated, userController.signin);
 routes.post("/signup", authentication.isAuthenticated, userController.signup);
-routes.get(
-  "/google",
-  passport.authenticate("google", {
-    scope: [
-      "openid",
-      "email",
-      "profile",
-      "https://www.googleapis.com/auth/user.phonenumbers.read",
-    ],
-  })
-);
-
-routes.get(
-  "/google/callback",
-  passport.authenticate("google", {
-    session: false,
-  }),
-  googleCallbackMiddleware
-);
 
 routes.put(
   "/",
@@ -59,11 +40,5 @@ routes.post(
   authentication.isAuthenticated,
   userController.verifyEmail
 );
-
-// routes.get("/:page", authentication.isAuthenticated, (req, res) => {
-//   res.sendFile(
-//     path.join(dirname, "../../../public", `${req.params.page}.html`)
-//   );
-// });
 
 export default routes;

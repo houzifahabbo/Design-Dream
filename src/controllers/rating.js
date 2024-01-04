@@ -41,13 +41,6 @@ ratingController.addRating = async (req, res) => {
         error: "You have not ordered from this designer",
       });
     }
-
-    const orderNotCompleted = order.status !== "completed";
-    if (orderNotCompleted) {
-      return res.status(400).json({
-        error: "You have not completed your order with this designer",
-      });
-    }
     const ratingObj = await RatingModel.create({
       user: user._id,
       rating,

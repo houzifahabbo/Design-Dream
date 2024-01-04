@@ -1,6 +1,7 @@
 	<!DOCTYPE html>
 	<html lang="zxx" class="no-js">
 	<head>
+		
 		<!-- Mobile Specific Meta -->
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<!-- Favicon-->
@@ -17,8 +18,9 @@
 		<meta charset="UTF-8">
 		<!-- Site Title -->
 		<title>Designer</title>
-
+		
 		<link href="https://fonts.googleapis.com/css?family=Poppins:100,200,400,300,500,600,700" rel="stylesheet"> 
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 			<!--
 			CSS
 			============================================= -->
@@ -43,7 +45,7 @@
 				        <ul class="nav-menu">
 				          <li class="menu-active"><a href="/">Home</a></li>
 				          <li><a href="/about-us">About Us</a></li>
-				          <li><a href="/designers">designers</a></li>
+				          <li><a href="/designer">designers</a></li>
 				          <li><a href="/price">Price</a></li>
 				          <li><a href="/blog-home">Blog</a></li>
 				          <li><a href="/contact">Contact</a></li>
@@ -54,8 +56,9 @@
 								<li><a href="/designer">designer</a></li>
 				            </ul>
 				          </li>
-				          <li><a class="ticker-btn" href="/signup">Sign up</a></li>
-				          <li><a class="ticker-btn" href="/signin">Sign in</a></li>			          				          
+				          <li class="signup-btn"><a class="ticker-btn" href="/signup" >Sign up</a></li>
+				          <li class="signin-btn"><a class="ticker-btn" href="/signin" >Sign in</a></li>
+						  <li class="signout-btn"><a class="ticker-btn" href="/signout" >Sign out</a></li>
 				        </ul>
 				      </nav><!-- #nav-menu-container -->		    		
 			    	</div>
@@ -87,6 +90,7 @@
 							<div id="designer-container"></div>
 							<div id="designer-gallery-container"></div>
 							<div id="designer-options-container"></div>
+							<div id="designer-rating-container"></div>
 							<div class="designer-post d-flex flex-row">
 								<div class="thumb">
 									<img src="../img/post.png" alt="">
@@ -266,7 +270,7 @@
 				</div>
 			</footer>
 			<!-- End footer Area -->		
-
+			
 			<script src="../js/vendor/jquery-2.2.4.min.js"></script>
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 			<script src="../js/vendor/bootstrap.min.js"></script>			
@@ -282,158 +286,7 @@
 			<script src="../js/parallax.min.js"></script>		
 			<script src="../js/mail-script.js"></script>	
 			<script src="../js/main.js"></script>
-			<script>
-				document.addEventListener('DOMContentLoaded', function () {
-				  // Fetch designers data from the API
-				getData(`/api${window.location.pathname}`, {}, 'GET')
-				.then(data => {
-					// Call a function to render designers on the page
-					renderDesigners(data);
-				})
-				.catch(error => {
-					console.error('Error fetching designers:', error);
-				});
-				// Function to render designers on the page
-				function renderDesigners(designer) {
-					const designersContainer = document.getElementById('designer-container');
-					const designerGalleryContainer = document.getElementById('designer-gallery-container');
-					
-					const designerDiv = document.createElement('div');
-				  designerDiv.classList.add('designer-post', 'd-flex', 'flex-row' ,"designer-img");
-					const aElement = document.createElement('a');
-					aElement.classList.add('designer-post', 'd-flex', 'flex-row');
-					aElement.href = `/designer/${designer.name}`;
-
-					const thumbDiv = document.createElement('div');
-					thumbDiv.classList.add('thumb');
-			
-					const designerImage = document.createElement('img');
-					designerImage.classList.add('img-fluid');
-					if (designer.logo && designer.logo.imageData && designer.logo.contentType) {
-						designerImage.src = `data:${designer.logo.contentType};base64,${designer.logo.imageData}`;
-					} else {
-						designerImage.src = 'img/post.png';
-					}
-					designerImage.alt = designer.name;
-			
-					const detailsDiv = document.createElement('div');
-					detailsDiv.classList.add('details');
-			
-					// Add other designer details here based on your API response
-					const designerName = document.createElement('h4');
-					designerName.innerHTML = designer.name;
-
-					const designerDescription = document.createElement('h6');
-					designerDescription.innerHTML = designer.description;
-
-					
-					const designerAvgRating = document.createElement('div');
-					designerAvgRating.classList.add('row','justify-content-start', 'rating');
-					const icon= document.createElement('i')
-					icon.classList.add('fa', 'fa-star', 'checked');
-					icon.style.color = '#ffe234';
-					icon.style.fontSize = '20px';
-					icon.style.margin = '0';
-					const rating = document.createElement('p');
-					rating.style.margin = '0 0 0 10px';
-					rating.style.color = '#000';
-					rating.innerHTML = designer.averageRating;
-
-			
-					// Append elements to the designerDiv
-					designerDiv.appendChild(aElement);
-					aElement.appendChild(thumbDiv);
-					thumbDiv.appendChild(designerImage);
-					aElement.appendChild(detailsDiv);
-					detailsDiv.appendChild(designerName);
-					detailsDiv.appendChild(designerDescription);
-					
-					if(designer.links){
-						const designerLinks = document.createElement('div');
-						designerLinks.classList.add('row','justify-content-start');
-						designerLinks.style.margin = '0 0 10px 0';
-						designer.links.forEach(website => {
-							const designerLink = document.createElement('a');
-							const icon = document.createElement('i');
-							if(website.type === 'Facebook'){
-								icon.classList.add('fa', 'fa-facebook');
-								icon.style.color = '#3b5998';
-							}
-							if(website.type === 'Twitter'){
-								icon.classList.add('fa', 'fa-twitter');
-								icon.style.color = '#1da1f2';
-							}
-							if(website.type === 'Instagram'){
-								icon.classList.add('fa', 'fa-instagram');
-								icon.style.color = '#e1306c';
-							}
-							if(website.type === 'Linkedin'){
-								icon.classList.add('fa', 'fa-linkedin');
-								icon.style.color = '#0077b5';
-							}
-							if(website.type === 'Website'){
-								icon.classList.add('fa', 'fa-globe');
-								icon.style.color = '#000000';
-							}
-							icon.style.fontSize = '30px';
-							icon.style.margin = '0 10px 0 0';
-							designerLink.appendChild(icon);
-							designerLink.href = website.url;
-							designerLink.target = '_blank';
-							designerLink.rel = 'noopener noreferrer';
-							designerLinks.appendChild(designerLink);
-						});
-						detailsDiv.appendChild(designerLinks);
-					}
-					detailsDiv.appendChild(designerAvgRating);
-					designerAvgRating.appendChild(icon);
-					designerAvgRating.appendChild(rating);
-					designersContainer.appendChild(designerDiv);
-					const designerGallery = document.createElement('div');
-					designerGallery.classList.add('row', 'gallery-item');
-					designer.photos.forEach(photo => {
-						const designerPhotoDiv = document.createElement('div');
-						designerPhotoDiv.classList.add('col-md-4');
-						const designerPhoto = document.createElement('div');
-						designerPhoto.classList.add('designer-gallery-image');
-						designerPhoto.style.background = `url(data:${photo.contentType};base64,${photo.imageData})`;
-						designerPhotoDiv.appendChild(designerPhoto);
-						designerGallery.appendChild(designerPhotoDiv);
-					});
-
-					designerGalleryContainer.appendChild(designerGallery);
-					
-					const designerOptionsContainer = document.getElementById('designer-options-container');
-					designer.options.forEach(option => {
-						const designerOptionDiv = document.createElement('div');
-						designerOptionDiv.classList.add('designer-post', 'd-flex', 'flex-row');
-						const designerOption = document.createElement('div');
-						const designerOptionName = document.createElement('h4');
-						designerOptionName.innerHTML = option.label;
-						const designerOptionRequired = document.createElement('p');
-						designerOptionRequired.innerHTML = option.required ? 'Required' : 'Optional';
-						const designerOptionPrice = document.createElement('p');
-						designerOptionPrice.innerHTML = option.price;
-						designerOptionDiv.appendChild(designerOption);
-						designerOption.appendChild(designerOptionName);
-						designerOption.appendChild(designerOptionRequired);
-						if(option.type === 'text field'){
-							const designerOptionInput = document.createElement('input');
-							designerOptionInput.type = option.dataType;
-							designerOptionInput.placeholder = option.placeholder;
-							designerOptionInput.required = option.required;
-							designerOption.appendChild(designerOptionInput);
-						}
-						designerOption.appendChild(designerOptionPrice);
-
-						designerOptionsContainer.appendChild(designerOptionDiv);
-
-					});
-
-				}
-				  
-				});
-			  </script>
+			<script src="../js/designer.js"></script>
 		</body>
 	</html>
 

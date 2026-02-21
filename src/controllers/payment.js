@@ -105,8 +105,8 @@ paymentController.checkout = async (req, res) => {
           destination: designerObj.stripeAccount,
         },
       },
-      success_url: `${process.env.DOMAIN}/payment/success`,
-      cancel_url: `${process.env.DOMAIN}/payment/cancel`,
+      success_url: `${process.env.DOMAIN}/api/payment/success`,
+      cancel_url: `${process.env.DOMAIN}/api/payment/cancel`,
     });
     const token = await jwt.sign(
       {

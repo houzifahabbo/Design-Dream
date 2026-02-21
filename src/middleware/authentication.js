@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import DesignerModel from "../db/models/designer.js";
 import UserModel from "../db/models/user.js";
+import user from "../db/models/user.js";
 
 const isAdminMiddleware = (req, res, next) => {
   const token = req.cookies.jwt;
@@ -52,7 +53,6 @@ const authMiddleware = (role) => {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
 
       let userOrDesigner;
-
       if (role === "user") {
         userOrDesigner = await UserModel.findById(decodedToken.id);
       } else if (role === "designer") {
@@ -65,7 +65,6 @@ const authMiddleware = (role) => {
           role = "designer";
         }
       }
-
       if (role && !userOrDesigner) {
         return res.status(403).send("Forbidden");
       }

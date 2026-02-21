@@ -19,7 +19,7 @@ AdminJS.registerAdapter({
 
 const startAdminJS = async () => {
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.NODE_ADMIN_PORT || 5001;
 
   const resources = [
     OrderModel,

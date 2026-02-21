@@ -30,8 +30,4 @@ routes.post(
   paymentController.checkout
 );
 
-routes.get("/test", (req, res) => {
-  res.sendFile("/TEST.html", { root: "./" });
-});
-
 export default routes;
